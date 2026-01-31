@@ -1,0 +1,14 @@
+import SwiftUI
+import LoopKitUI
+
+struct SettingsView: View {
+    @ObservedObject var viewModel: SettingsViewModel
+
+    var body: some View {
+        Text("Connected: \(viewModel.connected)")
+        Button(action: { viewModel.deleteCGM() }) {
+            Text("Delete CGM")
+        }
+        .buttonStyle(ActionButtonStyle())
+    }
+}
