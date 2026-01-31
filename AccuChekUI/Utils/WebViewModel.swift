@@ -26,7 +26,7 @@ class WebViewModel: NSObject, ObservableObject, WKNavigationDelegate {
             if scheme != "https", scheme != "http" {
                 let code = url.absoluteString.components(separatedBy: "code=")[1]
                 Task {
-                    let tokenResponse = await AuthHttp.getToken(code: code)
+                    let tokenResponse = await AuthHttp.getToken(code: code, type: TokenType.code)
                     nextStep(tokenResponse)
                 }
                 

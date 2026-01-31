@@ -1,5 +1,10 @@
 import Foundation
 
+enum TokenType : String {
+    case code = "CODE"
+    case refresh = "REFRESH"
+}
+
 enum AuthHttp {
     private static let CLIENT_ID = "036e247fda28423db6153bbc75458f4d"
     private static let CLIENT_SECRET = "C7401EFF2C914602A9f4AC8B10A5EB86"
@@ -7,13 +12,13 @@ enum AuthHttp {
     
     private static let logger = AccuChekLogger(category: "AuthHttp")
     
-    static func getToken(code: String) async -> AuthResponse? {
+    static func getToken(code: String, type: TokenType) async -> AuthResponse? {
         guard let url = URL(string: "https://api.prodeu.rdcplatform.com/v2/ciam/api/v3/identities/token") else {
             logger.error("Failed to parse URL")
             return nil
         }
         
-        let requestBody = "{\"token\":\"\(code)\",\"tokenType\":\"CODE\",\"redirectUri\":\"smartguide://oidc/success\"}"
+        let requestBody = "{\"token\":\"\(code)\",\"tokenType\":\"\(type.rawValue)\",\"redirectUri\":\"smartguide://oidc/success\"}"
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -21,7 +26,8 @@ enum AuthHttp {
             "client_id": CLIENT_ID,
             "client_secret": CLIENT_SECRET,
             "apiKey": API_KEY,
-            "x-operation-id": UUID().uuidString
+            "x-operation-id": UUID().uuidString,
+            "Content-Type": "application/json"
         ]
         request.httpBody = Data(requestBody.utf8)
         
