@@ -1,12 +1,12 @@
 import CoreBluetooth
 
 class AcsAdapter: PairingAdapter {
-    private let logger = AccuChekLogger(category: "AcsAdapter")
-
+    internal let logger = AccuChekLogger(category: "AcsAdapter")
     internal let cgmManager: AccuChekCgmManager
     internal let peripheralManager: AccuChekPeripheralManager
-    
-    private let descriptorPacket = GetAllActiveDescriptorsPacket()
+
+    internal var sensorRevisionInfo: SensorRevisionInfo?
+    internal let descriptorPacket = GetAllActiveDescriptorsPacket()
 
     init(cgmManager: AccuChekCgmManager, peripheralManager: AccuChekPeripheralManager) {
         self.cgmManager = cgmManager
@@ -21,6 +21,8 @@ class AcsAdapter: PairingAdapter {
 
         peripheralManager.startNotify(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_DATA_OUT_NOTIFY)
         peripheralManager.startNotify(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_DATA_OUT_INDICATE)
+
+        sensorRevisionInfo = getSensorRevisionInfo()
     }
 
     func initialize() -> Bool {
@@ -28,7 +30,7 @@ class AcsAdapter: PairingAdapter {
             logger.info("Used auth bypass")
             return true
         }
-        
+
         peripheralManager.startNotify(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_CONTROL_POINT)
 
         let mtuPacket = GetAttMtuPacket()
@@ -38,8 +40,12 @@ class AcsAdapter: PairingAdapter {
         }
 
         cgmManager.state.mtu = mtuPacket.mtu
-        
-        if !peripheralManager.write(packet: descriptorPacket, service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_CONTROL_POINT) {
+
+        if !peripheralManager.write(
+            packet: descriptorPacket,
+            service: CBUUID.ACS_SERVICE,
+            characteristic: CBUUID.ACS_CONTROL_POINT
+        ) {
             logger.error("Failed to write to GetAllActiveDescriptors")
             return false
         }
@@ -51,13 +57,10 @@ class AcsAdapter: PairingAdapter {
             logger.error("Failed to write to GetCertificateNonce")
             return false
         }
-        
-        doKeyExchange(keyConfigurations: descriptorPacket.keyConfigurations, nonce: certPacket.nonce)
+
+        doKeyExchange(certificateNonce: certPacket.nonce)
+        return true
     }
 
     func configureSensor() {}
-    
-    private func doKeyExchange(keyConfigurations: [IKeyDescriptor], nonce: UInt16) {
-        
-    }
 }

@@ -1,5 +1,24 @@
 import LoopKit
 
+typealias UUIDRaw = (
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8,
+    UInt8
+)
+
 struct AccuChekState: RawRepresentable, Equatable {
     public typealias RawValue = CGMManager.RawStateValue
 
@@ -9,7 +28,8 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var mtu: UInt16 = 0
     public var serialNumber: String?
     public var hasAcs: Bool
-    
+    public var deviceId: UUID
+
     // Authentication of CGM
     public var pinCode: String?
     public var privateKey: Data?
@@ -17,7 +37,7 @@ struct AccuChekState: RawRepresentable, Equatable {
 
     public var lastGlucoseTimestamp: Date?
     public var lastGlucoseValue: UInt16?
-    
+
     public var accessToken: String?
     public var expiresAt: Date?
     public var refreshToken: String?
@@ -36,6 +56,12 @@ struct AccuChekState: RawRepresentable, Equatable {
         accessToken = rawValue["accessToken"] as? String
         refreshToken = rawValue["refreshToken"] as? String
         expiresAt = rawValue["expiresAt"] as? Date
+
+        if let rawDeviceId = ["deviceId"] as? UUIDRaw {
+            deviceId = UUID(uuid: rawDeviceId)
+        } else {
+            deviceId = UUID()
+        }
     }
 
     var rawValue: CGMManager.RawStateValue {
@@ -45,6 +71,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         raw["mtu"] = mtu
         raw["serialNumber"] = serialNumber
         raw["hasAcs"] = hasAcs
+        raw["deviceId"] = deviceId.uuid
         raw["pinCode"] = pinCode
         raw["privateKey"] = privateKey
         raw["publicKey"] = publicKey
@@ -64,6 +91,7 @@ struct AccuChekState: RawRepresentable, Equatable {
             "* serialNumber: \(String(describing: serialNumber))",
             "* isConnected: \(isConnected)",
             "* hasAcs: \(hasAcs)",
+            "* deviceId: \(deviceId.uuidString)",
             "* lastGlucoseTimestamp: \(String(describing: lastGlucoseTimestamp))",
             "* lastGlucoseValue: \(String(describing: lastGlucoseValue))"
         ].joined(separator: "\n")

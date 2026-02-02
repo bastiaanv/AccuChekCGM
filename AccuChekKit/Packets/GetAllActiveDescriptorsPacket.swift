@@ -8,7 +8,7 @@ class GetAllActiveDescriptorsPacket: AcsBasePacket {
         4
     }
 
-    func getRequest() -> [Data] {
+    func getRequest() -> Data {
         createOpCodePacket(code: AcsOpcode.getAllActiveDescriptors)
     }
 
@@ -27,6 +27,22 @@ class GetAllActiveDescriptorsPacket: AcsBasePacket {
 
     func isComplete() -> Bool {
         !securityConfigurations.isEmpty && !keyConfigurations.isEmpty
+    }
+
+    func getAesCgm() -> AesCgmKeyDescriptor? {
+        for key in keyConfigurations where key.keyType == .aes128Gcm {
+            return key as? AesCgmKeyDescriptor
+        }
+        return nil
+    }
+
+    func getEcdh() -> EcdhKeyDescriptor? {
+        for key in keyConfigurations {
+            if let key = key as? EcdhKeyDescriptor {
+                return key
+            }
+        }
+        return nil
     }
 
     private func parseRestrictionMap(_: Data) {}
@@ -63,45 +79,43 @@ class GetAllActiveDescriptorsPacket: AcsBasePacket {
     private func parseKeyConfig(_ data: Data) {
         var index = 1
         while index < data.count {
-            switch data[index+1] {
+            switch data[index + 1] {
             case KeyDescriptorType.ecdhKeyExchange.rawValue:
                 if let descriptor = parseEcdhKeyDescriptor(data, index) {
                     keyConfigurations.append(descriptor)
                 }
-                break
             case KeyDescriptorType.aes128Gcm.rawValue:
                 if let descriptor = parseAesKeyDescriptor(data, index) {
                     keyConfigurations.append(descriptor)
                 }
-                break
             default:
-                let length = data[index+2]
+                let length = data[index + 2]
                 index += 3 + Int(length)
-                break
             }
         }
     }
-    
+
     private func parseEcdhKeyDescriptor(_ data: Data, _ index: Int) -> EcdhKeyDescriptor? {
-        return EcdhKeyDescriptor(
-            keyId: data.getUInt16(offset: index+2),
-            serverPublicKeyFormat: data[index+3],
-            clientPublicKeyFormat: data[index+4],
-            ellipticCurve: data[index+5],
-            keyDerivationFunction: data[index+6]
+        EcdhKeyDescriptor(
+            keyId: data.getUInt16(offset: index + 2),
+            keyType: KeyDescriptorType.ecdhKeyExchange,
+            serverPublicKeyFormat: data[index + 3],
+            clientPublicKeyFormat: data[index + 4],
+            ellipticCurve: data[index + 5],
+            keyDerivationFunction: data[index + 6]
         )
     }
-    
+
     private func parseAesKeyDescriptor(_ data: Data, _ index: Int) -> AesCgmKeyDescriptor? {
-        return AesCgmKeyDescriptor(
-            keyId: data.getUInt16(offset: index+2),
-            keyType: data[index+3],
-            messageType: data[index+4],
-            macSize: data[index+5],
-            nonceType: data[index+6],
-            nonceVariableSize: data[index+7],
-            nonceFixedSize: data[index+8],
-            nonceFixedValue: data.getSubData(offset: index+8, size: Int(data[index+8]))
+        AesCgmKeyDescriptor(
+            keyId: data.getUInt16(offset: index + 2),
+            keyType: data[index + 3],
+            messageType: data[index + 4],
+            macSize: data[index + 5],
+            nonceType: data[index + 6],
+            nonceVariableSize: data[index + 7],
+            nonceFixedSize: data[index + 8],
+            nonceFixedValue: data.getSubData(offset: index + 8, size: Int(data[index + 8]))
         )
     }
 }

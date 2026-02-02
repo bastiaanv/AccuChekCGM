@@ -4,7 +4,7 @@ import WebKit
 
 class WebViewModel: NSObject, ObservableObject, WKNavigationDelegate {
     let nextStep: (AuthResponse?) -> Void
-    
+
     init(nextStep: @escaping (AuthResponse?) -> Void, webView: WKWebView? = nil) {
         self.nextStep = nextStep
         self.webView = webView
@@ -15,7 +15,6 @@ class WebViewModel: NSObject, ObservableObject, WKNavigationDelegate {
             webView?.navigationDelegate = self
         }
     }
-
 
     func webView(
         _: WKWebView,
@@ -29,7 +28,7 @@ class WebViewModel: NSObject, ObservableObject, WKNavigationDelegate {
                     let tokenResponse = await AuthHttp.getToken(code: code, type: TokenType.code)
                     nextStep(tokenResponse)
                 }
-                
+
                 decisionHandler(.cancel)
                 return
             }

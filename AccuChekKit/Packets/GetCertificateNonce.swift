@@ -6,7 +6,7 @@ class GetCertificateNonce: AcsBasePacket {
         1
     }
 
-    func getRequest() -> [Data] {
+    func getRequest() -> Data {
         createOpCodePacket(code: AcsOpcode.getCertificateNonce)
     }
 

@@ -1,4 +1,4 @@
-enum KeyDescriptorType : UInt8 {
+enum KeyDescriptorType: UInt8 {
     case oobKeyExchange = 0
     case ecdhKeyExchange = 1
     case kdfKeyExchange = 2

@@ -4,9 +4,9 @@ extension Data {
     func getUInt16(offset: Int) -> UInt16 {
         UInt16(self[offset]) << 8 | UInt16(self[offset + 1])
     }
-    
+
     func getSubData(offset: Int, size: Int) -> Data {
-        Data(self.subdata(in: offset..<(offset+size)))
+        Data(subdata(in: offset ..< (offset + size)))
     }
 
     func toString() -> String {
@@ -17,10 +17,26 @@ extension Data {
         let format = "%02hhx"
         return map { String(format: format, $0) }.joined()
     }
+
+    static func randomSecure(length: Int) -> Data {
+        var randomNumberGenerator = SecRandomNumberGenerator()
+        return Data((0 ..< length).map { _ in UInt8.random(in: UInt8.min ... UInt8.max, using: &randomNumberGenerator) })
+    }
 }
 
 extension UInt8 {
     var char: Character {
         Character(UnicodeScalar(self))
+    }
+}
+
+struct SecRandomNumberGenerator: RandomNumberGenerator {
+    func next() -> UInt64 {
+        let size = MemoryLayout<UInt64>.size
+        var data = Data(count: size)
+        return data.withUnsafeMutableBytes {
+            guard SecRandomCopyBytes(kSecRandomDefault, size, $0.baseAddress!) == 0 else { fatalError() }
+            return $0.load(as: UInt64.self)
+        }
     }
 }

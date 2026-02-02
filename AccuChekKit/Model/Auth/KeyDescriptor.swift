@@ -2,16 +2,25 @@ import Foundation
 
 protocol IKeyDescriptor {
     var keyId: UInt16 { get }
+    var keyType: KeyDescriptorType { get }
 }
 
-class EcdhKeyDescriptor : IKeyDescriptor {
+class EcdhKeyDescriptor: IKeyDescriptor {
     let keyId: UInt16
+    let keyType: KeyDescriptorType
     let serverPublicKeyFormat: PublicKeyFormat
     let clientPublicKeyFormat: PublicKeyFormat
     let ellipticCurve: EllipticCurveType
     let keyDerivationFunction: KeyDerivationFunctionType
-    
-    init?(keyId: UInt16, serverPublicKeyFormat: UInt8, clientPublicKeyFormat: UInt8, ellipticCurve: UInt8, keyDerivationFunction: UInt8) {
+
+    init?(
+        keyId: UInt16,
+        keyType: KeyDescriptorType,
+        serverPublicKeyFormat: UInt8,
+        clientPublicKeyFormat: UInt8,
+        ellipticCurve: UInt8,
+        keyDerivationFunction: UInt8
+    ) {
         guard
             let serverPublicKeyFormat = PublicKeyFormat(rawValue: serverPublicKeyFormat),
             let clientPublicKeyFormat = PublicKeyFormat(rawValue: clientPublicKeyFormat),
@@ -20,8 +29,9 @@ class EcdhKeyDescriptor : IKeyDescriptor {
         else {
             return nil
         }
-        
+
         self.keyId = keyId
+        self.keyType = keyType
         self.serverPublicKeyFormat = serverPublicKeyFormat
         self.clientPublicKeyFormat = clientPublicKeyFormat
         self.ellipticCurve = ellipticCurve
@@ -29,7 +39,7 @@ class EcdhKeyDescriptor : IKeyDescriptor {
     }
 }
 
-class AesCgmKeyDescriptor : IKeyDescriptor {
+class AesCgmKeyDescriptor: IKeyDescriptor {
     let keyId: UInt16
     let keyType: KeyDescriptorType
     let messageType: MessageType
@@ -38,8 +48,17 @@ class AesCgmKeyDescriptor : IKeyDescriptor {
     let nonceVariableSize: UInt8
     let nonceFixedSize: UInt8
     let nonceFixedValue: Data
-    
-    init?(keyId: UInt16, keyType: UInt8, messageType: UInt8, macSize: UInt8, nonceType: UInt8, nonceVariableSize: UInt8, nonceFixedSize: UInt8, nonceFixedValue: Data) {
+
+    init?(
+        keyId: UInt16,
+        keyType: UInt8,
+        messageType: UInt8,
+        macSize: UInt8,
+        nonceType: UInt8,
+        nonceVariableSize: UInt8,
+        nonceFixedSize: UInt8,
+        nonceFixedValue: Data
+    ) {
         guard
             let keyType = KeyDescriptorType(rawValue: keyType),
             let messageType = MessageType(rawValue: messageType),
@@ -47,7 +66,7 @@ class AesCgmKeyDescriptor : IKeyDescriptor {
         else {
             return nil
         }
-        
+
         self.keyId = keyId
         self.keyType = keyType
         self.messageType = messageType
@@ -59,12 +78,12 @@ class AesCgmKeyDescriptor : IKeyDescriptor {
     }
 }
 
-enum MessageType : UInt8 {
+enum MessageType: UInt8 {
     case profileDefinedParameter = 0x00
     case protectedResourceValue = 0x01
 }
 
-enum NonceType : UInt8 {
+enum NonceType: UInt8 {
     case profileDefined = 0x00
     case sequenceNumberEvenOdd = 0x01
     case sequenceNumberDifferentFixedParts = 0x02
@@ -75,7 +94,7 @@ enum PublicKeyFormat: UInt8 {
     case x509DerEncoded = 0x01
 }
 
-enum EllipticCurveType : UInt8 {
+enum EllipticCurveType: UInt8 {
     case curveP256 = 0x00
     case curveP384 = 0x01
     case curveP521 = 0x02

@@ -7,7 +7,7 @@ class GetAttMtuPacket: AcsBasePacket {
         1
     }
 
-    func getRequest() -> [Data] {
+    func getRequest() -> Data {
         createOpCodePacket(code: AcsOpcode.getAttMtu)
     }
 

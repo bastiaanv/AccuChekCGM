@@ -3,14 +3,14 @@ import Foundation
 protocol AcsBasePacket {
     var numberOfResponses: Int { get }
 
-    func getRequest() -> [Data]
+    func getRequest() -> Data
     func parseResponse(data: Data)
     func isComplete() -> Bool
 }
 
 extension AcsBasePacket {
-    func createOpCodePacket(code: AcsOpcode) -> [Data] {
-        [Data([code.rawValue])]
+    func createOpCodePacket(code: AcsOpcode) -> Data {
+        Data([code.rawValue])
     }
 }
 

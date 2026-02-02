@@ -42,7 +42,6 @@ class AccuChekPeripheralManager: NSObject {
 
         // Wait for response or timeout timer...
         readQ.wait(until: Date.now.addingTimeInterval(10))
-
         return readData
     }
 
@@ -51,10 +50,10 @@ class AccuChekPeripheralManager: NSObject {
             return false
         }
 
-        let writeQ = NSCondition()
+        var writeQ = NSCondition()
         writeQueue = writeQ
 
-        for item in packet.getRequest() {
+        for item in segmentData(data: packet.getRequest()) {
             peripheral.writeValue(item, for: characteristic, type: .withoutResponse)
             Thread.sleep(forTimeInterval: .milliseconds(100))
         }
@@ -66,16 +65,23 @@ class AccuChekPeripheralManager: NSObject {
             writeQueue = nil
         }
 
-        for i in 0 ..< packet.numberOfResponses {
+        var responses: [Data] = []
+        for _ in 0 ..< packet.numberOfResponses {
             // Wait for response or timeout timer...
-            writeQ.wait(until: Date.now.addingTimeInterval(10))
-            if writeData.isEmpty {
+            if !writeQ.wait(until: Date.now.addingTimeInterval(10)) || writeData.isEmpty {
                 logger.error("Timeout has been hit...")
                 return false
             }
 
-            packet.parseResponse(data: writeData)
+            responses.append(writeData)
             writeData = Data()
+
+            writeQ = NSCondition()
+            writeQueue = writeQ
+        }
+
+        responses.forEach {
+            packet.parseResponse(data: $0)
         }
 
         return packet.isComplete()
@@ -182,13 +188,14 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
         guard let data = characteristic.value else {
-            logger
-                .warning(
-                    "Empty data -> characteristic: \(characteristic.uuid.uuidString), service: \(characteristic.service?.uuid.uuidString ?? "nil")"
-                )
+            let service = characteristic.service?.uuid.uuidString ?? ""
+            let characteristic = characteristic.uuid.uuidString
+            logger.warning("Empty data -> characteristic: \(characteristic), service: \(service)")
+
             return
         }
 
+        logger.debug("Recieved data: \(data.hexString()), characteristic: \(characteristic.uuid.uuidString)")
         if let readQueue = readQueue {
             readData = data
             readQueue.signal()
@@ -197,8 +204,6 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
 
         if let writeQueue = writeQueue {
             writeData.append(data)
-            // TODO: Are we ready to signal?
-
             writeQueue.signal()
             return
         }

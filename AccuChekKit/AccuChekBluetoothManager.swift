@@ -31,7 +31,7 @@ class AccuChekBluetoothManager: NSObject {
             logger.error("No CBCentralManager available...")
             return
         }
-        
+
         if manager.isScanning {
             manager.stopScan()
         }

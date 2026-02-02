@@ -1,5 +1,5 @@
-import SwiftUI
 import LoopKitUI
+import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel

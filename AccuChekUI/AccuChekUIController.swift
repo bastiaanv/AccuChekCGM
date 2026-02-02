@@ -11,7 +11,7 @@ enum AccuChekScreen {
 }
 
 class AccuChekUIController: UINavigationController, CGMManagerOnboarding, CompletionNotifying, UINavigationControllerDelegate {
-    let logger = AccuChekLogger(category: "EversenseUIController")
+    let logger = AccuChekLogger(category: "AccuChekUIController")
 
     var cgmManagerOnboardingDelegate: LoopKitUI.CGMManagerOnboardingDelegate?
     var completionDelegate: LoopKitUI.CompletionDelegate?
@@ -58,11 +58,11 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
     }
 
     private func getInitialScreen() -> AccuChekScreen {
-        if cgmManager?.isOnboarded ?? false {
-            return .settings
-        }
+//        if cgmManager?.isOnboarded ?? false {
+//            return .settings
+//        }
 
-        return .onboarding
+        .onboarding
     }
 
     private func hostingController<Content: View>(rootView: Content) -> DismissibleHostingController<some View> {
@@ -84,13 +84,13 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
                     cgmManager.state.refreshToken = response.refresh_token
                     cgmManager.notifyStateDidChange()
                 }
-                
+
                 self.resetNavigationTo([.pairing])
             })
             return hostingController(rootView: AuthView(viewModel: viewModel))
         case .pairing:
-            
-            return hostingController(rootView: <#T##View#>)
+
+            return hostingController(rootView: EmptyView())
         case .settings:
             let deleteCGM = {
                 guard let cgmManager = self.cgmManager else {
@@ -104,7 +104,7 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
                     }
                 }
             }
-            
+
             let viewModel = SettingsViewModel(cgmManager, deleteCGM: deleteCGM)
             return hostingController(rootView: SettingsView(viewModel: viewModel))
         }
@@ -126,7 +126,7 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
             }
         }
     }
-    
+
     private func navigateTo(_ screen: AccuChekScreen) {
         screenStack.append(screen)
         let viewController = viewControllerForScreen(screen)
@@ -134,7 +134,7 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
         pushViewController(viewController, animated: true)
         viewController.view.layoutSubviews()
     }
-    
+
     func resetNavigationTo(_ screens: [AccuChekScreen]) {
         screenStack = screens
         let viewControllers = screenStack.map {
