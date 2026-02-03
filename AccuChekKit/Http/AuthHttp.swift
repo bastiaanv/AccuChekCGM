@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum TokenType: String {
     case code = "CODE"
@@ -15,6 +16,13 @@ enum AuthHttp {
     public static let API_KEY = "4__JKlcM_cxJSH43P9cLL2mA"
 
     private static let logger = AccuChekLogger(category: "AuthHttp")
+    private static let formatter = {
+        let formatter = DateFormatter()
+        // 2026-02-02T21:29:44.3690750+00:00
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'0+00:00'"
+
+        return formatter
+    }()
 
     static func getToken(code: String, type: TokenType) async -> AuthResponse? {
         guard let url = URL(string: "https://api.prodeu.rdcplatform.com/v2/ciam/api/v3/identities/token") else {
@@ -39,10 +47,10 @@ enum AuthHttp {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                logger
-                    .error(
-                        "Got invalid response auth token: \((response as? HTTPURLResponse)?.statusCode ?? -1) \(String(data: data, encoding: .utf8) ?? "No data")"
-                    )
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                let response = String(data: data, encoding: .utf8) ?? "No data"
+                logger.error("Got invalid response auth token: \(statusCode) \(response)")
+
                 return nil
             }
 
@@ -50,6 +58,49 @@ enum AuthHttp {
             return try JSONDecoder().decode(AuthResponse.self, from: data)
         } catch {
             logger.error("Failed to get auth token: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    static func getDeviceId(token: String) async -> String? {
+        do {
+            guard let url = URL(string: "https://api.prodeu.rdcplatform.com/settings/api/support/v2/application") else {
+                logger.error("Failed to parse URL")
+                return nil
+            }
+
+            let device = await UIDevice.current
+            let requestBody = GetDeviceIdRequest(
+                lastUpdated: formatter.string(from: Date.now.addingTimeInterval(.days(-1))),
+                phoneModel: await device.model,
+                phoneOS: await device.systemVersion
+            )
+            let requestJson = try JSONEncoder().encode(requestBody)
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.allHTTPHeaderFields = [
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "apiKey": API_KEY,
+                "x-operation-id": UUID().uuidString,
+                "Authorization": "Bearer \(token)",
+                "Content-Type": "application/json"
+            ]
+            request.httpBody = requestJson
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                let response = String(data: data, encoding: .utf8) ?? "No data"
+                logger.error("Got invalid response device id: \(statusCode) \(response)")
+
+                return nil
+            }
+
+            return (try JSONDecoder().decode(GetDeviceIdResponse.self, from: data)).applicationInstanceId
+        } catch {
+            logger.error("Failed to do request: \(error.localizedDescription)")
             return nil
         }
     }
@@ -61,4 +112,18 @@ struct AuthResponse: Decodable {
     let refresh_token: String
     let id_token: String
     let token_type: String
+}
+
+struct GetDeviceIdRequest: Encodable {
+    let applicationInstanceID: String = ""
+    let applicationName: String = "Accu-Chek SmartGuide app"
+    let applicationVersion: String = "1.2.0"
+    let lastUpdated: String
+    let phoneManufacturer: String = "Apple"
+    let phoneModel: String
+    let phoneOS: String
+}
+
+struct GetDeviceIdResponse: Decodable {
+    let applicationInstanceId: String
 }

@@ -1,14 +1,14 @@
+import CryptoKit
+import ASN1
 import Foundation
-internal import X509
 import UIKit
-internal import SwiftASN1
-internal import Crypto
 
 enum CertificateHttp {
     private static let logger = AccuChekLogger(category: "CertificateHttp")
 
     static func getCertificate(request: CertificateRequest) async -> Certificate? {
         guard let csrPem = generateCertificationRequest(request: request) else {
+            logger.error("Failed to generate certificate request")
             return nil
         }
 
@@ -45,6 +45,17 @@ enum CertificateHttp {
                 "Content-Digest": "SHA-256=\(hash(data: requestJson))"
             ]
 
+            print([
+                "client_id": AuthHttp.CLIENT_ID,
+                "client_secret": AuthHttp.CLIENT_SECRET,
+                "apiKey": AuthHttp.API_KEY,
+                "x-operation-id": UUID().uuidString,
+                "Content-Type": "application/json",
+                "Authorization": "Bearer \(request.authToken)",
+                "Content-Digest": "SHA-256=\(hash(data: requestJson))"
+            ])
+            print(String(bytes: requestJson, encoding: .utf8))
+
             let (data, response) = try await URLSession.shared.data(for: httpRequest)
             guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
                 let body = String(data: data, encoding: .utf8) ?? "No data"
@@ -61,12 +72,16 @@ enum CertificateHttp {
                 do {
                     guard
                         let der = Data(base64Encoded: $0.dcdCertificate),
-                        let cert = SecCertificateCreateWithData(nil, der as CFData)
+                        let asn1Sequence = try ASN1.build(der) as? ASN1Sequence,
+                        let tbsCertificate = asn1Sequence.get(0) as? ASN1Sequence,
+                        let validity = tbsCertificate.get(4) as? ASN1Sequence,
+                        let notValidAfter = validity.get(1) as? ASN1Time
                     else {
+                        logger.error("Some object is empty or of wrong type - encoded value: \($0.dcdCertificate)")
                         return nil as Certificate?
                     }
 
-                    return try Certificate(cert)
+                    return Certificate(der: der, notValidAfter: notValidAfter.toDate() ?? Date.distantPast)
                 } catch {
                     logger.error("Failed to parse certificate: \(error.localizedDescription)")
                     return nil
@@ -88,46 +103,23 @@ enum CertificateHttp {
     }
 
     private static func generateCertificationRequest(request: CertificateRequest) -> String? {
-        do {
-            let subject = try DistinguishedName([
-                .init(type: .NameAttributes.organizationName, utf8String: "Roche Diabetes Care GmbH"),
-                .init(type: .NameAttributes.commonName, utf8String: "947"),
-                .init(type: .NameAttributes.surname, utf8String: "303"),
-                .init(type: .NameAttributes.pseudonym, utf8String: "\(request.certificateNonce)"),
-                .init(type: .NameAttributes.serialNumber, utf8String: request.dcdSerialNumber.uuidString),
-                .init(type: .NameAttributes.givenName, utf8String: request.serialNumber)
-            ])
+        let csr = CertificateSigningRequest(
+            commonName: "947",
+            surName: "303",
+            givenName: request.serialNumber,
+            organizationName: "Roche Diabetes Care GmbH",
+            serialNumber: request.dcdSerialNumber,
+            pseudonym: "\(request.certificateNonce)",
+            keyAlgorithm: KeyAlgorithm.ec(signatureType: KeyAlgorithm.Signature.sha256)
+        )
 
-            let csr = try CertificateSigningRequest(
-                version: .v1,
-                subject: subject,
-                privateKey: Certificate.PrivateKey(request.privateKey),
-                attributes: CertificateSigningRequest.Attributes([]),
-                signatureAlgorithm: .ecdsaWithSHA256
-            )
-
-            if !csr.publicKey.isValidSignature(csr.signature, for: csr) {
-                logger.error("Signature is invalid...")
-                return nil
-            }
-
-            var pemString = try csr.publicKey.serializeAsPEM(discriminator: CertificateSigningRequest.defaultPEMDiscriminator)
-                .pemString
-            return pemString
-                .replace(target: "-----BEGIN CERTIFICATE REQUEST-----\n", withString: "")
-                .replace(target: "-----END CERTIFICATE REQUEST-----\n", withString: "")
-                .replace(target: "\n", withString: "")
-                .replace(target: "\r", withString: "")
-        } catch {
-            logger.error("Failed to generate certificate request: \(error.localizedDescription)")
-            return nil
-        }
+        return csr.buildAndEncodeDataAsString(privateKey: request.privateKey)
     }
 
     struct CertificateRequest {
         let serialNumber: String
         let certificateNonce: UInt16
-        let dcdSerialNumber: UUID
+        let dcdSerialNumber: String
         let privateKey: P256.Signing.PrivateKey
         let sensorRevisionInfo: SensorRevisionInfo
         let authToken: String
@@ -154,4 +146,9 @@ enum CertificateHttp {
         let dcdCertificateValidTo: String
         let caSerialNumber: String
     }
+}
+
+struct Certificate {
+    let der: Data
+    let notValidAfter: Date
 }

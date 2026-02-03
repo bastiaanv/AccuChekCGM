@@ -6,7 +6,7 @@ struct SensorRevisionInfo {
 
     static func `default`() -> SensorRevisionInfo {
         SensorRevisionInfo(
-            serialNumber: "",
+            serialNumber: "000667359",
             firmwareRevision: "*",
             hardwareRevision: "*",
             softwareRevision: "*"

@@ -6,8 +6,38 @@ class PairingViewModel: ObservableObject {
     private let logger = AccuChekLogger(category: "PairingViewModel")
 
     private let cgmManager: AccuChekCgmManager?
-    init(_ cgmManager: AccuChekCgmManager?, deleteCGM _: @escaping () -> Void) {
+    init(_ cgmManager: AccuChekCgmManager?) {
         self.cgmManager = cgmManager
+
+        fetchDeviceId()
+    }
+
+    func fetchDeviceId() {
+        guard let cgmManager else {
+            logger.error("No CGM manager to start scanning")
+            return
+        }
+
+        if let deviceId = cgmManager.state.deviceId, !deviceId.isEmpty {
+            logger.debug("Bypass deviceID fetch")
+            startScanning()
+            return
+        }
+
+        guard let accessToken = cgmManager.state.accessToken else {
+            logger.error("No access token available...")
+            return
+        }
+
+        Task {
+            guard let id = await AuthHttp.getDeviceId(token: accessToken) else {
+                logger.error("Failed to get device id")
+                return
+            }
+
+            cgmManager.state.deviceId = id
+            startScanning()
+        }
     }
 
     func startScanning() {

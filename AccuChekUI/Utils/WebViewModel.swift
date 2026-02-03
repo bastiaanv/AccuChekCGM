@@ -26,7 +26,9 @@ class WebViewModel: NSObject, ObservableObject, WKNavigationDelegate {
                 let code = url.absoluteString.components(separatedBy: "code=")[1]
                 Task {
                     let tokenResponse = await AuthHttp.getToken(code: code, type: TokenType.code)
-                    nextStep(tokenResponse)
+                    DispatchQueue.main.async {
+                        self.nextStep(tokenResponse)
+                    }
                 }
 
                 decisionHandler(.cancel)

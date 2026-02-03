@@ -1,6 +1,22 @@
 import Foundation
 
 extension Data {
+    init(hexString: String) {
+        guard hexString.count.isMultiple(of: 2) else {
+            fatalError("No a multiple of 2")
+        }
+
+        let chars = hexString.map { $0 }
+        let bytes = stride(from: 0, to: chars.count, by: 2)
+            .map { String(chars[$0]) + String(chars[$0 + 1]) }
+            .compactMap { UInt8($0, radix: 16) }
+
+        guard hexString.count / bytes.count == 2 else {
+            fatalError("No a multiple of 2")
+        }
+        self.init(bytes)
+    }
+
     func getUInt16(offset: Int) -> UInt16 {
         UInt16(self[offset]) << 8 | UInt16(self[offset + 1])
     }

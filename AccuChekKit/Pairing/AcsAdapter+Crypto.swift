@@ -1,15 +1,13 @@
 import CoreBluetooth
-internal import X509
-internal import Crypto
+import CryptoKit
 import Foundation
 
 extension AcsAdapter {
-    func generateKeyPair() -> (P256.Signing.PrivateKey, P256.Signing.PublicKey, Data) {
+    func generateKeyPair() -> (P256.Signing.PrivateKey, Data) {
         let privateKey = P256.Signing.PrivateKey()
-        let publicKey = privateKey.publicKey
         let nonce = Data.randomSecure(length: 4)
 
-        return (privateKey, publicKey, nonce)
+        return (privateKey, nonce)
     }
 
     func doKeyExchange(certificateNonce: UInt16) {
@@ -22,15 +20,15 @@ extension AcsAdapter {
         }
 
         let semaphore = DispatchSemaphore(value: 0)
-        let (privateKey, publicKey, fixedNoncePrefix) = generateKeyPair()
+        let (privateKey, fixedNoncePrefix) = generateKeyPair()
 
-        var certificate: Certificate?
+        var certificate: CertificateSigningRequest?
         Task {
             let sensorRevision = self.sensorRevisionInfo ?? SensorRevisionInfo.default()
             let request = CertificateHttp.CertificateRequest(
                 serialNumber: sensorRevision.serialNumber,
                 certificateNonce: certificateNonce,
-                dcdSerialNumber: cgmManager.state.deviceId,
+                dcdSerialNumber: cgmManager.state.deviceId ?? "",
                 privateKey: privateKey,
                 sensorRevisionInfo: sensorRevision,
                 authToken: cgmManager.state.accessToken ?? ""

@@ -74,7 +74,14 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
     private func viewControllerForScreen(_ screen: AccuChekScreen) -> UIViewController {
         switch screen {
         case .onboarding:
-            let view = OnboardingView(nextStep: { self.navigateTo(.auth) })
+            let view = OnboardingView(nextStep: {
+                if self.cgmManager?.state.accessToken == nil {
+                    self.navigateTo(.auth)
+                    return
+                }
+
+                self.navigateTo(.pairing)
+            })
             return hostingController(rootView: view)
         case .auth:
             let viewModel = WebViewModel(nextStep: { response in
@@ -89,8 +96,8 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
             })
             return hostingController(rootView: AuthView(viewModel: viewModel))
         case .pairing:
-
-            return hostingController(rootView: EmptyView())
+            let viewModel = PairingViewModel(cgmManager)
+            return hostingController(rootView: PairingView(viewModel: viewModel))
         case .settings:
             let deleteCGM = {
                 guard let cgmManager = self.cgmManager else {

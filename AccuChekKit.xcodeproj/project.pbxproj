@@ -9,8 +9,7 @@
 /* Begin PBXBuildFile section */
 		3E2C85562F2E54870060A478 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E2C85542F2E54870060A478 /* LoopKit.framework */; };
 		3E2C85582F2E54870060A478 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E2C85552F2E54870060A478 /* LoopKitUI.framework */; };
-		3E4BF9262F2F6DAE00B0EFFD /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 3E4BF9252F2F6DAE00B0EFFD /* X509 */; };
-		3E4BF9292F2F6F3A00B0EFFD /* SwiftASN1 in Frameworks */ = {isa = PBXBuildFile; productRef = 3E4BF9282F2F6F3A00B0EFFD /* SwiftASN1 */; };
+		3E3859F52F3292DB00ACA100 /* ASN1 in Frameworks */ = {isa = PBXBuildFile; productRef = 3E3859F42F3292DB00ACA100 /* ASN1 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,9 +42,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3E2C85562F2E54870060A478 /* LoopKit.framework in Frameworks */,
-				3E4BF9292F2F6F3A00B0EFFD /* SwiftASN1 in Frameworks */,
 				3E2C85582F2E54870060A478 /* LoopKitUI.framework in Frameworks */,
-				3E4BF9262F2F6DAE00B0EFFD /* X509 in Frameworks */,
+				3E3859F52F3292DB00ACA100 /* ASN1 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,8 +111,7 @@
 			);
 			name = AccuChekKit;
 			packageProductDependencies = (
-				3E4BF9252F2F6DAE00B0EFFD /* X509 */,
-				3E4BF9282F2F6F3A00B0EFFD /* SwiftASN1 */,
+				3E3859F42F3292DB00ACA100 /* ASN1 */,
 			);
 			productName = AccuChekKit;
 			productReference = 3E2C85492F2E543D0060A478 /* AccuChekKit.framework */;
@@ -145,8 +142,7 @@
 			mainGroup = 3E2C853F2F2E543D0060A478;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				3E4BF9242F2F6DAE00B0EFFD /* XCRemoteSwiftPackageReference "swift-certificates" */,
-				3E4BF9272F2F6F3A00B0EFFD /* XCRemoteSwiftPackageReference "swift-asn1" */,
+				3E3859F32F3292DB00ACA100 /* XCRemoteSwiftPackageReference "ASN1" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 3E2C854A2F2E543D0060A478 /* Products */;
@@ -307,10 +303,10 @@
 		3E2C85512F2E543D0060A478 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
+				DEFINES_MODULE = NO;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -348,10 +344,10 @@
 		3E2C85522F2E543D0060A478 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
+				DEFINES_MODULE = NO;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -410,34 +406,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		3E4BF9242F2F6DAE00B0EFFD /* XCRemoteSwiftPackageReference "swift-certificates" */ = {
+		3E3859F32F3292DB00ACA100 /* XCRemoteSwiftPackageReference "ASN1" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-certificates.git";
+			repositoryURL = "https://github.com/leif-ibsen/ASN1";
 			requirement = {
 				kind = exactVersion;
-				version = 1.17.1;
-			};
-		};
-		3E4BF9272F2F6F3A00B0EFFD /* XCRemoteSwiftPackageReference "swift-asn1" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-asn1.git";
-			requirement = {
-				kind = exactVersion;
-				version = 1.4.0;
+				version = 2.7.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		3E4BF9252F2F6DAE00B0EFFD /* X509 */ = {
+		3E3859F42F3292DB00ACA100 /* ASN1 */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3E4BF9242F2F6DAE00B0EFFD /* XCRemoteSwiftPackageReference "swift-certificates" */;
-			productName = X509;
-		};
-		3E4BF9282F2F6F3A00B0EFFD /* SwiftASN1 */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3E4BF9272F2F6F3A00B0EFFD /* XCRemoteSwiftPackageReference "swift-asn1" */;
-			productName = SwiftASN1;
+			package = 3E3859F32F3292DB00ACA100 /* XCRemoteSwiftPackageReference "ASN1" */;
+			productName = ASN1;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

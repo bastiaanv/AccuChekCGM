@@ -28,7 +28,7 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var mtu: UInt16 = 0
     public var serialNumber: String?
     public var hasAcs: Bool
-    public var deviceId: UUID
+    public var deviceId: String?
 
     // Authentication of CGM
     public var pinCode: String?
@@ -48,6 +48,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         mtu = rawValue["mtu"] as? UInt16 ?? 20
         hasAcs = rawValue["hasAcs"] as? Bool ?? true
         serialNumber = rawValue["serialNumber"] as? String
+        deviceId = rawValue["deviceId"] as? String
         pinCode = rawValue["pinCode"] as? String
         privateKey = rawValue["privateKey"] as? Data
         publicKey = rawValue["publicKey"] as? Data
@@ -56,12 +57,6 @@ struct AccuChekState: RawRepresentable, Equatable {
         accessToken = rawValue["accessToken"] as? String
         refreshToken = rawValue["refreshToken"] as? String
         expiresAt = rawValue["expiresAt"] as? Date
-
-        if let rawDeviceId = ["deviceId"] as? UUIDRaw {
-            deviceId = UUID(uuid: rawDeviceId)
-        } else {
-            deviceId = UUID()
-        }
     }
 
     var rawValue: CGMManager.RawStateValue {
@@ -71,7 +66,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         raw["mtu"] = mtu
         raw["serialNumber"] = serialNumber
         raw["hasAcs"] = hasAcs
-        raw["deviceId"] = deviceId.uuid
+        raw["deviceId"] = deviceId
         raw["pinCode"] = pinCode
         raw["privateKey"] = privateKey
         raw["publicKey"] = publicKey
@@ -91,7 +86,7 @@ struct AccuChekState: RawRepresentable, Equatable {
             "* serialNumber: \(String(describing: serialNumber))",
             "* isConnected: \(isConnected)",
             "* hasAcs: \(hasAcs)",
-            "* deviceId: \(deviceId.uuidString)",
+            "* deviceId: \(deviceId)",
             "* lastGlucoseTimestamp: \(String(describing: lastGlucoseTimestamp))",
             "* lastGlucoseValue: \(String(describing: lastGlucoseValue))"
         ].joined(separator: "\n")
