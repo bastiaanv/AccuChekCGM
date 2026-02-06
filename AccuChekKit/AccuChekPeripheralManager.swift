@@ -1,9 +1,10 @@
 import CoreBluetooth
+import CryptoKit
 
 class AccuChekPeripheralManager: NSObject {
     private let logger = AccuChekLogger(category: "PeripheralManager")
 
-    private let peripheral: CBPeripheral
+    private var peripheral: CBPeripheral
     private let cgmManager: AccuChekCgmManager
     private var connecionCompletion: ((AccuChekError?) -> Void)?
 
@@ -15,10 +16,18 @@ class AccuChekPeripheralManager: NSObject {
     private var writeQueue: NSCondition?
     private var writeData = Data()
 
+    internal var aesCgmKey: SymmetricKey?
+
     init(peripheral: CBPeripheral, cgmManager: AccuChekCgmManager, completion: ((AccuChekError?) -> Void)?) {
         self.peripheral = peripheral
         self.cgmManager = cgmManager
         connecionCompletion = completion
+
+        if let key = cgmManager.state.aesKey {
+            aesCgmKey = SymmetricKey(data: key)
+            logger.debug("Constructed AES CGM Key!")
+        }
+
         super.init()
 
         peripheral.delegate = self
@@ -41,11 +50,11 @@ class AccuChekPeripheralManager: NSObject {
         }
 
         // Wait for response or timeout timer...
-        readQ.wait(until: Date.now.addingTimeInterval(10))
+        readQ.wait(until: Date.now.addingTimeInterval(15))
         return readData
     }
 
-    func write(packet: AcsBasePacket, service serviceUUID: CBUUID, characteristic characteristicUUID: CBUUID) -> Bool {
+    func write(packet: AccuChekBasePacket, service serviceUUID: CBUUID, characteristic characteristicUUID: CBUUID) -> Bool {
         guard let characteristic = getCharacteristic(serviceUUID: serviceUUID, characteristicUUID: characteristicUUID) else {
             return false
         }
@@ -118,13 +127,20 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
 
-        guard let acsService = peripheral.services?.first(where: { $0.uuid == CBUUID.ACS_SERVICE }) else {
-            logger.error("Couldnt find ACS service")
+        logger.info("Discovered services: \(peripheral.services?.map(\.uuid.uuidString).joined(separator: ", ") ?? "none")")
+        if let acsService = peripheral.services?.first(where: { $0.uuid == CBUUID.ACS_SERVICE }) {
+            logger.debug("Discovering ACS Service...")
+            peripheral.discoverCharacteristics(CBUUID.ACS_CHARACTERISTICS, for: acsService)
+        }
+
+        guard let rcsService = peripheral.services?.first(where: { $0.uuid == CBUUID.RCS_SERVICE }) else {
+            logger.error("Couldnt find RCS nor ACS service")
             connecionCompletion?(.discoveringFailed)
             return
         }
 
-        peripheral.discoverCharacteristics(CBUUID.ACS_CHARACTERISTICS, for: acsService)
+        logger.debug("Discovering RCS servcice...")
+        peripheral.discoverCharacteristics(CBUUID.ACS_CHARACTERISTICS, for: rcsService)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
@@ -137,8 +153,10 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
 
-        logger.info("Discovered characteristics of service \(service.uuid.uuidString)")
-        if service.uuid == CBUUID.ACS_SERVICE {
+        let serviceUUID = service.uuid
+        let characteristics = service.characteristics?.map(\.uuid.uuidString).joined(separator: ", ") ?? "none"
+        logger.info("Discovered characteristics of service \(serviceUUID.uuidString), chars: \(characteristics)")
+        if serviceUUID == CBUUID.ACS_SERVICE {
             guard let rcsService = peripheral.services?.first(where: { $0.uuid == CBUUID.RCS_SERVICE }) else {
                 logger.error("Couldnt find RCS service")
                 connecionCompletion?(.discoveringFailed)
@@ -149,7 +167,7 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
 
-        if service.uuid == CBUUID.RCS_SERVICE {
+        if serviceUUID == CBUUID.RCS_SERVICE {
             guard let rcsService = peripheral.services?.first(where: { $0.uuid == CBUUID.DIS_SERVICE }) else {
                 logger.error("Couldnt find DIS service")
                 connecionCompletion?(.discoveringFailed)
@@ -160,7 +178,7 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
 
-        if service.uuid == CBUUID.DIS_SERVICE {
+        if serviceUUID == CBUUID.DIS_SERVICE {
             guard let rcsService = peripheral.services?.first(where: { $0.uuid == CBUUID.CGM_SERVICE }) else {
                 logger.error("Couldnt find CGM service")
                 connecionCompletion?(.discoveringFailed)
@@ -171,14 +189,31 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
 
-        if cgmManager.state.hasAcs {
-            pairingAdapter = AcsAdapter(cgmManager: cgmManager, peripheralManager: self)
-            pairingAdapter?.pair()
-            pairingAdapter?.initialize()
-        } else {
-            logger.error("LegacyPasskeyAdapter not implemented...")
-            connecionCompletion?(.discoveringFailed)
+        guard let services = peripheral.services else {
+            logger.error("No services found on peripheral")
             return
+        }
+
+        self.peripheral = peripheral
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+
+            let pairingAdapter: PairingAdapter
+            if services.contains(where: { $0.uuid == CBUUID.ACS_SERVICE }) {
+                pairingAdapter = AcsAdapter(cgmManager: cgmManager, peripheralManager: self)
+            } else {
+                pairingAdapter = LegacyPasskeyAdapater(cgmManager: cgmManager, peripheralManager: self)
+            }
+            self.pairingAdapter = pairingAdapter
+
+            pairingAdapter.pair()
+            if !pairingAdapter.initialize() {
+                logger.error("Initialization failed...")
+                return
+            }
+
+            pairingAdapter.configureSensor()
+            connecionCompletion?(nil)
         }
     }
 
@@ -207,5 +242,15 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             writeQueue.signal()
             return
         }
+
+        if characteristic.uuid == CBUUID.CGM_MEASUREMENT {
+            let measurement = CgmMeasurement(data: data)
+            logger.info(measurement.describe)
+
+            cgmManager.notifyNewData(measurement: measurement)
+            return
+        }
+
+        logger.warning("Not handled above message...")
     }
 }

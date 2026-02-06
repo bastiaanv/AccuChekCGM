@@ -5,7 +5,7 @@ class AcsAdapter: PairingAdapter {
     internal let cgmManager: AccuChekCgmManager
     internal let peripheralManager: AccuChekPeripheralManager
 
-    internal var sensorRevisionInfo: SensorRevisionInfo?
+    internal var sensorRevisionInfo: SensorInfo?
     internal let descriptorPacket = GetAllActiveDescriptorsPacket()
 
     init(cgmManager: AccuChekCgmManager, peripheralManager: AccuChekPeripheralManager) {
@@ -22,11 +22,11 @@ class AcsAdapter: PairingAdapter {
         peripheralManager.startNotify(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_DATA_OUT_NOTIFY)
         peripheralManager.startNotify(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_DATA_OUT_INDICATE)
 
-        sensorRevisionInfo = getSensorRevisionInfo()
+        sensorRevisionInfo = getSensorInfo()
     }
 
     func initialize() -> Bool {
-        if cgmManager.state.publicKey != nil, cgmManager.state.privateKey != nil {
+        if cgmManager.state.aesKey != nil {
             logger.info("Used auth bypass")
             return true
         }
@@ -52,14 +52,7 @@ class AcsAdapter: PairingAdapter {
 
         // TODO: GetResourceHandleToUuidMap
 
-        let certPacket = GetCertificateNonce()
-        if !peripheralManager.write(packet: certPacket, service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_CONTROL_POINT) {
-            logger.error("Failed to write to GetCertificateNonce")
-            return false
-        }
-
-        doKeyExchange(certificateNonce: certPacket.nonce)
-        return true
+        return doKeyExchange()
     }
 
     func configureSensor() {}

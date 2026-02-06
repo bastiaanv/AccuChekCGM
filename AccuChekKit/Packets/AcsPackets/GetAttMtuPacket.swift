@@ -1,14 +1,16 @@
 import Foundation
 
-class GetAttMtuPacket: AcsBasePacket {
+class GetAttMtuPacket: AccuChekBasePacket {
     public var mtu: UInt16 = 0
 
-    var numberOfResponses: Int {
-        1
+    let numberOfResponses: Int = 1
+
+    var describe: String {
+        "[GetAttMtuPacket] mtu=\(mtu)"
     }
 
     func getRequest() -> Data {
-        createOpCodePacket(code: AcsOpcode.getAttMtu)
+        createAcsOpCodePacket(code: AcsOpcode.getAttMtu)
     }
 
     func parseResponse(data: Data) {

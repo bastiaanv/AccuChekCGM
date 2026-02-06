@@ -1,18 +1,23 @@
-import CryptoKit
 import ASN1
+import CryptoKit
 import Foundation
 import UIKit
 
 enum CertificateHttp {
     private static let logger = AccuChekLogger(category: "CertificateHttp")
 
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        // 2027-02-05T19:05:24Z
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        return formatter
+    }()
+
     static func getCertificate(request: CertificateRequest) async -> Certificate? {
         guard let csrPem = generateCertificationRequest(request: request) else {
             logger.error("Failed to generate certificate request")
             return nil
         }
-
-        logger.info("csrPem: \(csrPem)")
 
         do {
             let device = await UIDevice.current
@@ -45,17 +50,6 @@ enum CertificateHttp {
                 "Content-Digest": "SHA-256=\(hash(data: requestJson))"
             ]
 
-            print([
-                "client_id": AuthHttp.CLIENT_ID,
-                "client_secret": AuthHttp.CLIENT_SECRET,
-                "apiKey": AuthHttp.API_KEY,
-                "x-operation-id": UUID().uuidString,
-                "Content-Type": "application/json",
-                "Authorization": "Bearer \(request.authToken)",
-                "Content-Digest": "SHA-256=\(hash(data: requestJson))"
-            ])
-            print(String(bytes: requestJson, encoding: .utf8))
-
             let (data, response) = try await URLSession.shared.data(for: httpRequest)
             guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
                 let body = String(data: data, encoding: .utf8) ?? "No data"
@@ -69,24 +63,18 @@ enum CertificateHttp {
             let responseObj = try JSONDecoder().decode(AcsCertrificateResponse.self, from: data)
 
             let certificates = responseObj.certificates.compactMap {
-                do {
-                    guard
-                        let der = Data(base64Encoded: $0.dcdCertificate),
-                        let asn1Sequence = try ASN1.build(der) as? ASN1Sequence,
-                        let tbsCertificate = asn1Sequence.get(0) as? ASN1Sequence,
-                        let validity = tbsCertificate.get(4) as? ASN1Sequence,
-                        let notValidAfter = validity.get(1) as? ASN1Time
-                    else {
-                        logger.error("Some object is empty or of wrong type - encoded value: \($0.dcdCertificate)")
-                        return nil as Certificate?
-                    }
-
-                    return Certificate(der: der, notValidAfter: notValidAfter.toDate() ?? Date.distantPast)
-                } catch {
-                    logger.error("Failed to parse certificate: \(error.localizedDescription)")
-                    return nil
+                guard let der = Data(base64Encoded: $0.dcdCertificate),
+                      let validTo = dateFormatter.date(from: $0.dcdCertificateValidTo)
+                else {
+                    logger
+                        .error(
+                            "Some object is empty or of wrong type - encoded value: \($0.dcdCertificate), validTo: \($0.dcdCertificateValidTo)"
+                        )
+                    return nil as Certificate?
                 }
-            }.sorted(by: { $0.notValidAfter > $1.notValidAfter })
+
+                return Certificate(der: der, validTo: validTo)
+            }.sorted(by: { $0.validTo > $1.validTo })
 
             return certificates.first
         } catch {
@@ -106,10 +94,10 @@ enum CertificateHttp {
         let csr = CertificateSigningRequest(
             commonName: "947",
             surName: "303",
-            givenName: request.serialNumber,
+            givenName: "*",
             organizationName: "Roche Diabetes Care GmbH",
-            serialNumber: request.dcdSerialNumber,
-            pseudonym: "\(request.certificateNonce)",
+            serialNumber: UUID().uuidString[0 ..< 36],
+            pseudonym: "*",
             keyAlgorithm: KeyAlgorithm.ec(signatureType: KeyAlgorithm.Signature.sha256)
         )
 
@@ -117,11 +105,8 @@ enum CertificateHttp {
     }
 
     struct CertificateRequest {
-        let serialNumber: String
-        let certificateNonce: UInt16
-        let dcdSerialNumber: String
-        let privateKey: P256.Signing.PrivateKey
-        let sensorRevisionInfo: SensorRevisionInfo
+        let privateKey: P256.KeyAgreement.PrivateKey
+        let sensorRevisionInfo: SensorInfo
         let authToken: String
     }
 
@@ -148,7 +133,7 @@ enum CertificateHttp {
     }
 }
 
-struct Certificate {
+struct Certificate: Decodable, Encodable, Equatable {
     let der: Data
-    let notValidAfter: Date
+    let validTo: Date
 }

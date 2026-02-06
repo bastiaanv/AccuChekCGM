@@ -13,6 +13,8 @@ extension String {
         return String(self[start ..< end])
     }
 
+    var asciiValues: Data { Data(compactMap(\.asciiValue)) }
+
     func replace(target: String, withString: String) -> String {
         replacingOccurrences(of: target, with: withString, options: NSString.CompareOptions.literal, range: nil)
     }

@@ -1,15 +1,16 @@
 import Foundation
 
-protocol AcsBasePacket {
+protocol AccuChekBasePacket {
     var numberOfResponses: Int { get }
+    var describe: String { get }
 
     func getRequest() -> Data
     func parseResponse(data: Data)
     func isComplete() -> Bool
 }
 
-extension AcsBasePacket {
-    func createOpCodePacket(code: AcsOpcode) -> Data {
+extension AccuChekBasePacket {
+    func createAcsOpCodePacket(code: AcsOpcode) -> Data {
         Data([code.rawValue])
     }
 }

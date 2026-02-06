@@ -58,11 +58,11 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
     }
 
     private func getInitialScreen() -> AccuChekScreen {
-//        if cgmManager?.isOnboarded ?? false {
-//            return .settings
-//        }
+        if cgmManager?.isOnboarded ?? false {
+            return .settings
+        }
 
-        .onboarding
+        return .onboarding
     }
 
     private func hostingController<Content: View>(rootView: Content) -> DismissibleHostingController<some View> {
@@ -75,10 +75,15 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
         switch screen {
         case .onboarding:
             let view = OnboardingView(nextStep: {
-                if self.cgmManager?.state.accessToken == nil {
-                    self.navigateTo(.auth)
-                    return
-                }
+//                guard let cgmManager = self.cgmManager, let expiresAt = cgmManager.state.expiresAt else {
+//                    self.navigateTo(.auth)
+//                    return
+//                }
+//
+//                if cgmManager.state.accessToken == nil || expiresAt < Date.now {
+//                    self.navigateTo(.auth)
+//                    return
+//                }
 
                 self.navigateTo(.pairing)
             })
@@ -96,7 +101,17 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
             })
             return hostingController(rootView: AuthView(viewModel: viewModel))
         case .pairing:
-            let viewModel = PairingViewModel(cgmManager)
+            let nextStep = {
+                if let cgmManager = self.cgmManager {
+                    DispatchQueue.main.async {
+                        self.cgmManagerOnboardingDelegate?.cgmManagerOnboarding(didOnboardCGMManager: cgmManager)
+                        self.cgmManagerOnboardingDelegate?.cgmManagerOnboarding(didCreateCGMManager: cgmManager)
+                        self.completionDelegate?.completionNotifyingDidComplete(self)
+                    }
+                }
+            }
+
+            let viewModel = PairingViewModel(cgmManager, nextStep: nextStep)
             return hostingController(rootView: PairingView(viewModel: viewModel))
         case .settings:
             let deleteCGM = {

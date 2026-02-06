@@ -56,21 +56,38 @@ public class AccuChekCgmManager: CGMManager {
         LoopKit.CGMManagerStatus(
             hasValidSensorSession: state.onboarded,
             lastCommunicationDate: state.lastGlucoseTimestamp,
-            device: HKDevice(
-                name: "AC-RANDOM",
-                manufacturer: "Roche",
-                model: nil,
-                hardwareVersion: nil,
-                firmwareVersion: nil,
-                softwareVersion: nil,
-                localIdentifier: nil,
-                udiDeviceIdentifier: nil
-            )
+            device: device
+        )
+    }
+
+    internal var device: HKDevice {
+        HKDevice(
+            name: "AC-RANDOM",
+            manufacturer: "Roche",
+            model: nil,
+            hardwareVersion: nil,
+            firmwareVersion: nil,
+            softwareVersion: nil,
+            localIdentifier: nil,
+            udiDeviceIdentifier: nil
         )
     }
 
     public func fetchNewDataIfNeeded(_ completion: @escaping (LoopKit.CGMReadingResult) -> Void) {
         completion(.noData)
+    }
+
+    internal func notifyNewData(measurement: CgmMeasurement) {
+        delegate.notify { cgmDelegate in
+            cgmDelegate?.cgmManager(self, hasNew: .newData([
+                NewGlucoseSample(
+                    cgmManager: self,
+                    value: measurement.glucoseInMgDl,
+                    trend: measurement.getTrend(),
+                    dateTime: Date.now // TODO: Fixme
+                )
+            ]))
+        }
     }
 
     func addStateObserver(state: StateObserver, queue: DispatchQueue) {

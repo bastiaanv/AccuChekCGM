@@ -151,11 +151,12 @@ public class CertificateSigningRequest: NSObject {
         subjectItems.append(subjectItem)
     }
 
-    public func build(privateKey: P256.Signing.PrivateKey) -> Data? {
+    public func build(privateKey: P256.KeyAgreement.PrivateKey) -> Data? {
         let certificationRequestInfo = buildCertificationRequestInfo(privateKey)
 
         do {
-            let signature = try privateKey.signature(for: certificationRequestInfo)
+            let signingKey = try P256.Signing.PrivateKey(derRepresentation: privateKey.derRepresentation)
+            let signature = try signingKey.signature(for: certificationRequestInfo)
 
             var signData = Data(capacity: 257)
             signData.append(0)
@@ -176,7 +177,7 @@ public class CertificateSigningRequest: NSObject {
         }
     }
 
-    public func buildAndEncodeDataAsString(privateKey: P256.Signing.PrivateKey) -> String? {
+    public func buildAndEncodeDataAsString(privateKey: P256.KeyAgreement.PrivateKey) -> String? {
         guard let buildData = build(privateKey: privateKey) else {
             print("Failed to do Build")
             return nil
@@ -186,7 +187,7 @@ public class CertificateSigningRequest: NSObject {
             .addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)
     }
 
-    public func buildCSRAndReturnString(privateKey: P256.Signing.PrivateKey) -> String? {
+    public func buildCSRAndReturnString(privateKey: P256.KeyAgreement.PrivateKey) -> String? {
         guard let csrString = buildAndEncodeDataAsString(privateKey: privateKey) else {
             return nil
         }
@@ -218,7 +219,7 @@ public class CertificateSigningRequest: NSObject {
         return newCSRString
     }
 
-    func buildCertificationRequestInfo(_ privateKey: P256.Signing.PrivateKey) -> Data {
+    func buildCertificationRequestInfo(_ privateKey: P256.KeyAgreement.PrivateKey) -> Data {
         var certificationRequestInfo = Data(capacity: 256)
 
         // Add version
@@ -256,7 +257,7 @@ public class CertificateSigningRequest: NSObject {
         return certificationRequestInfo
     }
 
-    func buildPublicKeyInfo(_ privateKey: P256.Signing.PrivateKey) -> Data {
+    func buildPublicKeyInfo(_ privateKey: P256.KeyAgreement.PrivateKey) -> Data {
         var publicKeyInfo = Data(capacity: 390)
         publicKeyInfo.append(objectECPubicKey, count: objectECPubicKey.count)
         publicKeyInfo.append(objectECEncryptionNULL, count: objectECEncryptionNULL.count)

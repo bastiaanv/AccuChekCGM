@@ -1,11 +1,13 @@
 import Foundation
 
-class SetAcClientNonceFixedPacket: AcsBasePacket {
-    var numberOfResponses: Int {
-        1
+class SetAcClientNonceFixedPacket: AccuChekBasePacket {
+    let numberOfResponses: Int = 1
+
+    var describe: String {
+        "[SetAcClientNonceFixedPacket] responseCode=\(responseCode)"
     }
 
-    var success: UInt8 = 0
+    var responseCode: UInt8 = 0
 
     let aesGcmDescriptor: AesCgmKeyDescriptor
     let fixedNonce: Data
@@ -23,10 +25,10 @@ class SetAcClientNonceFixedPacket: AcsBasePacket {
     }
 
     func parseResponse(data: Data) {
-        success = data[1]
+        responseCode = data[1]
     }
 
     func isComplete() -> Bool {
-        success == 0x01
+        responseCode == 0x01
     }
 }

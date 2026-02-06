@@ -1,15 +1,17 @@
 import Foundation
 
-class GetAllActiveDescriptorsPacket: AcsBasePacket {
+class GetAllActiveDescriptorsPacket: AccuChekBasePacket {
     var securityConfigurations: [SecurityConfiguration] = []
     var keyConfigurations: [IKeyDescriptor] = []
 
-    var numberOfResponses: Int {
-        4
+    let numberOfResponses: Int = 4
+
+    var describe: String {
+        "[GetAllActiveDescriptorsPacket] #securityConf=\(securityConfigurations.count), hasAesCgm=\(getAesCgm() != nil), hasEcdh=\(getEcdh() != nil)"
     }
 
     func getRequest() -> Data {
-        createOpCodePacket(code: AcsOpcode.getAllActiveDescriptors)
+        createAcsOpCodePacket(code: AcsOpcode.getAllActiveDescriptors)
     }
 
     func parseResponse(data: Data) {

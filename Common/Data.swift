@@ -1,7 +1,7 @@
 import Foundation
 
 extension Data {
-    init(hexString: String) {
+    public init(hexString: String) {
         guard hexString.count.isMultiple(of: 2) else {
             fatalError("No a multiple of 2")
         }
@@ -18,7 +18,20 @@ extension Data {
     }
 
     func getUInt16(offset: Int) -> UInt16 {
-        UInt16(self[offset]) << 8 | UInt16(self[offset + 1])
+        UInt16(self[offset + 1]) << 8 | UInt16(self[offset])
+    }
+
+    func getDouble(offset: Int) -> Double {
+        let value = Int16(self[offset + 1]) << 8 | Int16(self[offset])
+        return getMantissa(value) * pow(10.0, Double(getExponent(value)))
+    }
+
+    private func getExponent(_ value: Int16) -> Int8 {
+        Int8(value >> 12)
+    }
+
+    private func getMantissa(_ value: Int16) -> Double {
+        Double((value << 4) >> 4)
     }
 
     func getSubData(offset: Int, size: Int) -> Data {
@@ -37,6 +50,23 @@ extension Data {
     static func randomSecure(length: Int) -> Data {
         var randomNumberGenerator = SecRandomNumberGenerator()
         return Data((0 ..< length).map { _ in UInt8.random(in: UInt8.min ... UInt8.max, using: &randomNumberGenerator) })
+    }
+
+    private func getExponent(value: UInt16) -> Double {
+        // TODO: Fixme
+        if value < 0 {
+            return Double(((value >> 12) & 0x0F) | 0xF0)
+        }
+
+        return Double((value >> 12) & 0x0F)
+    }
+
+    private func getMantissa(value: UInt16) -> UInt16 {
+        if (value & 0x0800) != 0 {
+            return UInt16((value & 0x0FFF) | 0xF000)
+        }
+
+        return UInt16(value & 0x0FFF)
     }
 }
 

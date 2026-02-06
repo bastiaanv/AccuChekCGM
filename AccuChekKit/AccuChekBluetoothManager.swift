@@ -5,6 +5,7 @@ class AccuChekBluetoothManager: NSObject {
     private let managerQueue = DispatchQueue(label: "com.bastiaanv.accuchek.bluetoothManagerQueue", qos: .unspecified)
 
     private var manager: CBCentralManager?
+    private var peripheral: CBPeripheral?
     private var peripheralManager: AccuChekPeripheralManager?
     public var cgmManager: AccuChekCgmManager?
 
@@ -13,7 +14,15 @@ class AccuChekBluetoothManager: NSObject {
 
     override init() {
         super.init()
-        manager = CBCentralManager(delegate: self, queue: managerQueue)
+
+        // Allow CGM manager to init before starting BLE process
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
+            self.manager = CBCentralManager(
+                delegate: self,
+                queue: self.managerQueue,
+                options: [CBCentralManagerOptionRestoreIdentifierKey: "com.bastiaanv.accuchek"]
+            )
+        }
     }
 
     func startScan(completion: @escaping (ScanResult) -> Void) {
@@ -24,9 +33,10 @@ class AccuChekBluetoothManager: NSObject {
 
         scanCompletion = completion
         manager.scanForPeripherals(withServices: [CBUUID.CGM_SERVICE])
+        logger.info("Started scan!")
     }
 
-    func connect(to peripheral: CBPeripheral, completion: @escaping (AccuChekError?) -> Void) {
+    func stopScan() {
         guard let manager else {
             logger.error("No CBCentralManager available...")
             return
@@ -36,14 +46,84 @@ class AccuChekBluetoothManager: NSObject {
             manager.stopScan()
         }
 
+        logger.info("Stop scan!")
+    }
+
+    func connect(to peripheral: CBPeripheral, completion: @escaping (AccuChekError?) -> Void) {
+        guard let manager else {
+            logger.error("No CBCentralManager available...")
+            return
+        }
+
+        stopScan()
+
+        self.peripheral = peripheral
         connectCompletion = completion
         manager.connect(peripheral, options: nil)
+        logger.info("Connecting to \(peripheral.name ?? "Unknown")...")
+    }
+
+    private func restoreConnection() {
+        guard let deviceName = cgmManager?.state.deviceName else {
+            logger.error("Cannot start ensureConnected - No device name available...")
+            return
+        }
+
+        startScan { result in
+            guard result.deviceName == deviceName else {
+                self.logger.debug("Found wrong CGM - name: \(result.describe)")
+                return
+            }
+
+            self.connect(to: result.peripheral) { error in
+                if let error = error {
+                    self.logger.error("Failed to restore: \(error)")
+                }
+            }
+        }
     }
 }
 
 extension AccuChekBluetoothManager: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         logger.info("State: \(central.state.rawValue)")
+
+        guard central.state == .poweredOn else {
+            return
+        }
+
+        if let peripheral = peripheral {
+            connect(to: peripheral) { error in
+                if let error = error {
+                    self.logger.error("Failed to restore: \(error)")
+                }
+            }
+            return
+        }
+
+        restoreConnection()
+    }
+
+    func centralManager(_ manager: CBCentralManager, willRestoreState dict: [String: Any]) {
+        if let cgmService = UUID(uuidString: CBUUID.CGM_SERVICE.uuidString),
+           let peripheral = manager.retrievePeripherals(withIdentifiers: [cgmService]).first
+        {
+            self.peripheral = peripheral
+        }
+
+        guard let deviceName = cgmManager?.state.deviceName else {
+            logger.warning("No device name available...")
+            return
+        }
+
+        guard let peripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral],
+              let peripheral = peripherals.first(where: { $0.name == deviceName })
+        else {
+            logger.warning("Restore state but no peripheral found")
+            return
+        }
+
+        self.peripheral = peripheral
     }
 
     func centralManager(
@@ -56,6 +136,7 @@ extension AccuChekBluetoothManager: CBCentralManagerDelegate {
             return
         }
 
+        logger.info(result.describe)
         scanCompletion?(result)
     }
 
@@ -67,6 +148,9 @@ extension AccuChekBluetoothManager: CBCentralManagerDelegate {
             central.cancelPeripheralConnection(peripheral)
             return
         }
+
+        cgmManager.state.isConnected = true
+        cgmManager.notifyStateDidChange()
 
         peripheralManager = AccuChekPeripheralManager(
             peripheral: peripheral,
@@ -81,6 +165,11 @@ extension AccuChekBluetoothManager: CBCentralManagerDelegate {
             logger.error("Received error during disconnect: \(error.localizedDescription)")
         } else {
             logger.warning("\(peripheral.name ?? "") disconnected")
+        }
+
+        if let cgmManager = cgmManager {
+            cgmManager.state.isConnected = false
+            cgmManager.notifyStateDidChange()
         }
 
         connect(to: peripheral) { error in
