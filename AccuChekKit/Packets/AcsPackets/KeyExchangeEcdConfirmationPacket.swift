@@ -2,8 +2,6 @@ import CryptoKit
 import Foundation
 
 class KeyExchangeEcdConfirmationPacket: AccuChekBasePacket {
-    let numberOfResponses: Int = 1
-
     var describe: String {
         "[KeyExchangeEcdConfirmationPacket] confirmationCode=\(confirmationCode.hexString())"
     }

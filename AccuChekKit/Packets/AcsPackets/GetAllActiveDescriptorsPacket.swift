@@ -4,8 +4,6 @@ class GetAllActiveDescriptorsPacket: AccuChekBasePacket {
     var securityConfigurations: [SecurityConfiguration] = []
     var keyConfigurations: [IKeyDescriptor] = []
 
-    let numberOfResponses: Int = 4
-
     var describe: String {
         "[GetAllActiveDescriptorsPacket] #securityConf=\(securityConfigurations.count), hasAesCgm=\(getAesCgm() != nil), hasEcdh=\(getEcdh() != nil)"
     }

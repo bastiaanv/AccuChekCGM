@@ -1,8 +1,6 @@
 import Foundation
 
 class KeyExchangeKdfPacket: AccuChekBasePacket {
-    let numberOfResponses: Int = 1
-
     var describe: String {
         "[KeyExchangeKdfPacket] salt=\(salt.hexString()), info=\(info.hexString())"
     }

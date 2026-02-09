@@ -1,8 +1,6 @@
 import Foundation
 
 class StartKeyExchangePacket: AccuChekBasePacket {
-    let numberOfResponses: Int = 1
-
     var describe: String {
         "[StartKeyExchangePacket] responseCode=\(responseCode)"
     }

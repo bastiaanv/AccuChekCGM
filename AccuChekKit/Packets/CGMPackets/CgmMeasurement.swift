@@ -4,15 +4,15 @@ import LoopKit
 public class CgmMeasurement {
     let flags: UInt8
     let glucoseInMgDl: UInt16
-    let timeOffset: UInt16
+    let timeOffset: TimeInterval
     let statusValues: Data
     let trend: Double?
     let quality: Double?
 
-    public init(data: Data) {
+    public init(_ data: Data) {
         flags = data[1]
         glucoseInMgDl = UInt16(data.getDouble(offset: 2))
-        timeOffset = data.getUInt16(offset: 4)
+        timeOffset = TimeInterval.minutes(Double(data.getUInt16(offset: 4)))
 
         var statusValues = Data()
 

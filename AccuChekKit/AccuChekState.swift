@@ -1,6 +1,24 @@
+import HealthKit
 import LoopKit
 
-// {\"hdTypeId\":\"303\",\"dcdCertificate\":\"MIICJDCCAcqgAwIBAgIUTBy3ZXD1Uj2BvHNdlsZMcfDiW70wCgYIKoZIzj0EAwIwOzEhMB8GA1UECgwYUm9jaGUgRGlhYmV0ZXMgQ2FyZSBHbWJIMRYwFAYDVQQDDA1ISUFNQ0IgQ0EgUHJvMB4XDTI2MDIwNDE5MzMwMloXDTI3MDIwNDE5MzMwMlowgYYxITAfBgNVBAoMGFJvY2hlIERpYWJldGVzIENhcmUgR21iSDEMMAoGA1UEAwwDOTQ3MS0wKwYDVQQFEyRBRTRERjlGMy0yNEZBLTRCMkUtQTc1NC04NzI2M0UxRTk1RDkxDDAKBgNVBAQMAzMwMzEKMAgGA1UEKgwBKjEKMAgGA1UEQQwBKjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABE4AlpEV8hFRfFQiIncmDHHrozsDA4OX9uzsu8fo8CHwKEqk8mLgNz9UfO/lrBycvZyys6IAqncAJpreJL1izEujYDBeMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgPIMB0GA1UdDgQWBBSogz8KUmOz9fWzqb3M2YTzdcr/7zAfBgNVHSMEGDAWgBT/EpeiDN1nIBPSPn+MQPbvRH9JGzAKBggqhkjOPQQDAgNIADBFAiEAwEuLltsBxRORPPbC6RqP3ODtdk90s4wVOH8LLmFU28YCIHsxplrJBHSCbVBGrU04SxeJ97ZPt3yAQxhgPg1TnnGi\",\"dcdCertificateValidFrom\":\"2026-02-04T19:33:02Z\",\"dcdCertificateValidTo\":\"2027-02-04T19:33:02Z\",\"caSerialNumber\":\"3449c39de3f33f7eb2f809a7b15fe00ee43c3fc8\"}
+public struct GlucoseDisplay: GlucoseDisplayable {
+    public let isStateValid: Bool
+    public let trendType: LoopKit.GlucoseTrend?
+    public let trendRate: HKQuantity? = nil
+    public let isLocal: Bool = true
+    public let glucoseRangeCategory: LoopKit.GlucoseRangeCategory? = nil
+
+    init(state: AccuChekState) {
+        if let lastSynced = state.lastGlucoseDate {
+            isStateValid = abs(lastSynced.timeIntervalSinceNow) <= TimeInterval(minutes: 15)
+        } else {
+            isStateValid = false
+        }
+
+        trendType = state.lastGlucoseTrend
+    }
+}
+
 struct AccuChekState: RawRepresentable, Equatable {
     public typealias RawValue = CGMManager.RawStateValue
 
@@ -18,8 +36,19 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var aesKey: Data?
     public var aesNonce: Data?
 
-    public var lastGlucoseTimestamp: Date?
+    public var cgmStartTime: Date?
+    public var cgmEndTime: Date? {
+        guard let cgmStartTime else {
+            return nil
+        }
+
+        return cgmStartTime.addingTimeInterval(.days(14))
+    }
+
+    public var lastGlucoseOffset: TimeInterval?
+    public var lastGlucoseDate: Date?
     public var lastGlucoseValue: UInt16?
+    public var lastGlucoseTrend: GlucoseTrend?
 
     public var accessToken: String?
     public var expiresAt: Date?
@@ -35,11 +64,19 @@ struct AccuChekState: RawRepresentable, Equatable {
         keyAgreementPrivate = rawValue["keyAgreementPrivate"] as? Data
         aesKey = rawValue["aesKey"] as? Data
         aesNonce = rawValue["aesNonce"] as? Data
-        lastGlucoseTimestamp = rawValue["lastGlucoseTimestamp"] as? Date
+        cgmStartTime = rawValue["cgmStartTime"] as? Date
+        lastGlucoseOffset = rawValue["lastGlucoseOffset"] as? TimeInterval
+        lastGlucoseDate = rawValue["lastGlucoseDate"] as? Date
         lastGlucoseValue = rawValue["lastGlucoseValue"] as? UInt16
         accessToken = rawValue["accessToken"] as? String
         refreshToken = rawValue["refreshToken"] as? String
         expiresAt = rawValue["expiresAt"] as? Date
+
+        if let rawLastGlucoseTrend = rawValue["lastGlucoseTrend"] as? GlucoseTrend.RawValue {
+            lastGlucoseTrend = GlucoseTrend(rawValue: rawLastGlucoseTrend) ?? .flat
+        } else {
+            lastGlucoseTrend = .flat
+        }
 
         do {
             if let certificateRaw = rawValue["certificate"] as? Data {
@@ -63,8 +100,11 @@ struct AccuChekState: RawRepresentable, Equatable {
         raw["keyAgreementPrivate"] = keyAgreementPrivate
         raw["aesKey"] = aesKey
         raw["aesNonce"] = aesNonce
-        raw["lastGlucoseTimestamp"] = lastGlucoseTimestamp
+        raw["cgmStartTime"] = cgmStartTime
+        raw["lastGlucoseOffset"] = lastGlucoseOffset
+        raw["lastGlucoseDate"] = lastGlucoseDate
         raw["lastGlucoseValue"] = lastGlucoseValue
+        raw["lastGlucoseTrend"] = lastGlucoseTrend?.rawValue
         raw["accessToken"] = accessToken
         raw["refreshToken"] = refreshToken
         raw["expiresAt"] = expiresAt
@@ -83,8 +123,11 @@ struct AccuChekState: RawRepresentable, Equatable {
             "* deviceName: \(String(describing: deviceName))",
             "* serialNumber: \(String(describing: serialNumber))",
             "* isConnected: \(isConnected)",
-            "* lastGlucoseTimestamp: \(String(describing: lastGlucoseTimestamp))",
-            "* lastGlucoseValue: \(String(describing: lastGlucoseValue))"
+            "* cgmStartTime: \(String(describing: cgmStartTime))",
+            "* lastGlucoseOffset: \(String(describing: lastGlucoseOffset))",
+            "* lastGlucoseDate: \(String(describing: lastGlucoseDate))",
+            "* lastGlucoseValue: \(String(describing: lastGlucoseValue))",
+            "* lastGlucoseTrend: \(String(describing: lastGlucoseTrend))"
         ].joined(separator: "\n")
     }
 }

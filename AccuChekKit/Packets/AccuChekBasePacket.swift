@@ -1,7 +1,6 @@
 import Foundation
 
 protocol AccuChekBasePacket {
-    var numberOfResponses: Int { get }
     var describe: String { get }
 
     func getRequest() -> Data

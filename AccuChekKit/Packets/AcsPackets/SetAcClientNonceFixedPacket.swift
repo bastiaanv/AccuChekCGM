@@ -1,8 +1,6 @@
 import Foundation
 
 class SetAcClientNonceFixedPacket: AccuChekBasePacket {
-    let numberOfResponses: Int = 1
-
     var describe: String {
         "[SetAcClientNonceFixedPacket] responseCode=\(responseCode)"
     }

@@ -8,7 +8,7 @@ class AccuChekPeripheralManager: NSObject {
     private let cgmManager: AccuChekCgmManager
     private var connecionCompletion: ((AccuChekError?) -> Void)?
 
-    private var pairingAdapter: PairingAdapter?
+    internal var pairingAdapter: PairingAdapter?
 
     private var readQueue: NSCondition?
     private var readData = Data()
@@ -16,6 +16,7 @@ class AccuChekPeripheralManager: NSObject {
     private var writeQueue: NSCondition?
     private var writeData = Data()
 
+    internal var mtu: Int = 20
     internal var aesCgmKey: SymmetricKey?
 
     init(peripheral: CBPeripheral, cgmManager: AccuChekCgmManager, completion: ((AccuChekError?) -> Void)?) {
@@ -62,8 +63,13 @@ class AccuChekPeripheralManager: NSObject {
         var writeQ = NSCondition()
         writeQueue = writeQ
 
-        for item in segmentData(data: packet.getRequest()) {
-            peripheral.writeValue(item, for: characteristic, type: .withoutResponse)
+        for item in segmentData(data: packet.getRequest(), mtu: mtu) {
+            logger.debug("Writing \(item.hexString()) to \(characteristic.uuid.uuidString)")
+            peripheral.writeValue(
+                item,
+                for: characteristic,
+                type: serviceUUID == CBUUID.CGM_SERVICE ? .withResponse : .withoutResponse
+            )
             Thread.sleep(forTimeInterval: .milliseconds(100))
         }
 
@@ -74,26 +80,21 @@ class AccuChekPeripheralManager: NSObject {
             writeQueue = nil
         }
 
-        var responses: [Data] = []
-        for _ in 0 ..< packet.numberOfResponses {
+        while !packet.isComplete() {
             // Wait for response or timeout timer...
             if !writeQ.wait(until: Date.now.addingTimeInterval(10)) || writeData.isEmpty {
                 logger.error("Timeout has been hit...")
                 return false
             }
 
-            responses.append(writeData)
+            packet.parseResponse(data: writeData)
             writeData = Data()
 
             writeQ = NSCondition()
             writeQueue = writeQ
         }
 
-        responses.forEach {
-            packet.parseResponse(data: $0)
-        }
-
-        return packet.isComplete()
+        return true
     }
 
     func startNotify(service serviceUUID: CBUUID, characteristic characteristicUUID: CBUUID) {
@@ -244,10 +245,10 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
         }
 
         if characteristic.uuid == CBUUID.CGM_MEASUREMENT {
-            let measurement = CgmMeasurement(data: data)
+            let measurement = CgmMeasurement(data)
             logger.info(measurement.describe)
 
-            cgmManager.notifyNewData(measurement: measurement)
+            cgmManager.notifyNewData(measurements: [measurement])
             return
         }
 

@@ -1,8 +1,6 @@
 import Foundation
 
 class KeyExchangeEcdhPacket: AccuChekBasePacket {
-    let numberOfResponses: Int = 1
-
     var describe: String {
         "[KeyExchangeEcdhPacket] xCoord=\(xCoord.hexString()), yCoord=\(yCoord.hexString())"
     }

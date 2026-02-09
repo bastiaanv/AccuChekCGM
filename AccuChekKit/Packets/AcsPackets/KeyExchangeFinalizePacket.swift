@@ -1,8 +1,6 @@
 import Foundation
 
 class KeyExchangeFinalizePacket: AccuChekBasePacket {
-    let numberOfResponses: Int = 2
-
     var describe: String {
         "[KeyExchangeFinalizePacket] confirmationCode=\(confirmationCode.hexString())"
     }

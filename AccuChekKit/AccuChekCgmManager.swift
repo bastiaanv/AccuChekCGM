@@ -49,21 +49,26 @@ public class AccuChekCgmManager: CGMManager {
     }
 
     public var glucoseDisplay: (any LoopKit.GlucoseDisplayable)? {
-        nil
+        GlucoseDisplay(state: state)
     }
 
     public var cgmManagerStatus: LoopKit.CGMManagerStatus {
-        LoopKit.CGMManagerStatus(
+        var lastComm: Date?
+        if let cgmStartTime = state.cgmStartTime, let lastGlucoseOffset = state.lastGlucoseOffset {
+            lastComm = cgmStartTime.addingTimeInterval(lastGlucoseOffset)
+        }
+
+        return LoopKit.CGMManagerStatus(
             hasValidSensorSession: state.onboarded,
-            lastCommunicationDate: state.lastGlucoseTimestamp,
+            lastCommunicationDate: lastComm,
             device: device
         )
     }
 
     internal var device: HKDevice {
         HKDevice(
-            name: "AC-RANDOM",
-            manufacturer: "Roche",
+            name: state.deviceName,
+            manufacturer: "Roche Diabetes Care GmbH",
             model: nil,
             hardwareVersion: nil,
             firmwareVersion: nil,
@@ -77,16 +82,31 @@ public class AccuChekCgmManager: CGMManager {
         completion(.noData)
     }
 
-    internal func notifyNewData(measurement: CgmMeasurement) {
+    internal func notifyNewData(measurements: [CgmMeasurement]) {
+        guard !measurements.isEmpty, let startTime = state.cgmStartTime else {
+            return
+        }
+
+        if let lastMeasurement = measurements.last {
+            state.lastGlucoseValue = lastMeasurement.glucoseInMgDl
+            state.lastGlucoseDate = startTime.addingTimeInterval(lastMeasurement.timeOffset)
+            state.lastGlucoseOffset = lastMeasurement.timeOffset
+            notifyStateDidChange()
+        }
+
         delegate.notify { cgmDelegate in
-            cgmDelegate?.cgmManager(self, hasNew: .newData([
-                NewGlucoseSample(
-                    cgmManager: self,
-                    value: measurement.glucoseInMgDl,
-                    trend: measurement.getTrend(),
-                    dateTime: Date.now // TODO: Fixme
-                )
-            ]))
+            guard let cgmDelegate else { return }
+
+            cgmDelegate.cgmManager(self, hasNew: .newData(
+                measurements.map {
+                    NewGlucoseSample(
+                        cgmManager: self,
+                        value: $0.glucoseInMgDl,
+                        trend: $0.getTrend(),
+                        dateTime: startTime.addingTimeInterval($0.timeOffset)
+                    )
+                }
+            ))
         }
     }
 

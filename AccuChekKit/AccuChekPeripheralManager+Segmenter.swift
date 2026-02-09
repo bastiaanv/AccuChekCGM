@@ -2,6 +2,10 @@ import Foundation
 
 extension AccuChekPeripheralManager {
     func segmentData(data: Data, mtu: Int = 20) -> [Data] {
+        if (pairingAdapter as? LegacyPasskeyAdapater) != nil {
+            return [data]
+        }
+
         let chunkSize = mtu - 1
         guard chunkSize > 0 else {
             return []

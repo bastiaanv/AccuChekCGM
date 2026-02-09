@@ -23,10 +23,9 @@ class LegacyPasskeyAdapater: PairingAdapter {
     func initialize() -> Bool {
         peripheralManager.startNotify(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_MEASUREMENT)
         peripheralManager.startNotify(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_CONTROL_POINT)
+        peripheralManager.startNotify(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_RACP)
         peripheralManager.startNotify(service: CBUUID.RCS_SERVICE, characteristic: CBUUID.RCS_CONTROL_POINT)
 
         return true
     }
-
-    func configureSensor() {}
 }

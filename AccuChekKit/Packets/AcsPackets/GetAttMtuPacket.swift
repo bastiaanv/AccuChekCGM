@@ -3,8 +3,6 @@ import Foundation
 class GetAttMtuPacket: AccuChekBasePacket {
     public var mtu: UInt16 = 0
 
-    let numberOfResponses: Int = 1
-
     var describe: String {
         "[GetAttMtuPacket] mtu=\(mtu)"
     }
