@@ -2,6 +2,7 @@ import LoopKitUI
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.dismissAction) private var dismiss
     @Environment(\.guidanceColors) private var guidanceColors
     @EnvironmentObject private var displayGlucosePreference: DisplayGlucosePreference
 
@@ -28,7 +29,7 @@ struct SettingsView: View {
     var body: some View {
         List {
             Section {
-                VStack {
+                VStack(spacing: 0) {
                     HStack {
                         Spacer()
                         Image(uiImage: UIImage(named: "sensor", in: Bundle(for: AccuChekUIController.self), compatibleWith: nil)!)
@@ -39,13 +40,15 @@ struct SettingsView: View {
                         Spacer()
                     }
 
-                    HStack(alignment: .bottom) {
+                    HStack(alignment: .lastTextBaseline) {
                         Text(LocalizedString("Sensor expires in:", comment: "expiration timer"))
                             .foregroundColor(.secondary)
                         Spacer()
                         sensorExpirationTimer
                     }
-                    ProgressView(progress: viewModel.sensorAgeProcess)
+                    SwiftUI.ProgressView(value: viewModel.sensorAgeProcess)
+                        .scaleEffect(x: 1, y: 4, anchor: .center)
+                        .padding(.top, 7)
                 }
 
                 HStack(alignment: .top) {
@@ -89,7 +92,8 @@ struct SettingsView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .navigationTitle("Accu-Chek SmartGuide CGM")
+        .navigationBarItems(trailing: Button(LocalizedString("Done", comment: "done button title"), action: dismiss))
+        .navigationTitle("Accu-Chek CGM")
     }
 
     @ViewBuilder private var cgmConnectionStatus: some View {
@@ -133,8 +137,13 @@ struct SettingsView: View {
                         .font(.system(size: 28))
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
-                    Text(LocalizedString("d", comment: "day"))
-                        .foregroundColor(.secondary)
+                    if viewModel.sensorAgeDays == 1 {
+                        Text(LocalizedString("day", comment: "age in day"))
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text(LocalizedString("days", comment: "age in days"))
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             if viewModel.sensorAgeHours > 0 {
@@ -143,8 +152,13 @@ struct SettingsView: View {
                         .font(.system(size: 28))
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
-                    Text(LocalizedString("h", comment: "hour"))
-                        .foregroundColor(.secondary)
+                    if viewModel.sensorAgeDays == 1 {
+                        Text(LocalizedString("hour", comment: "age in hour"))
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text(LocalizedString("hours", comment: "age in hours"))
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             if viewModel.sensorAgeDays == 0 {
@@ -153,8 +167,13 @@ struct SettingsView: View {
                         .font(.system(size: 28))
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
-                    Text(LocalizedString("min", comment: "minute"))
-                        .foregroundColor(.secondary)
+                    if viewModel.sensorAgeDays == 1 {
+                        Text(LocalizedString("minute", comment: "age in minute"))
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text(LocalizedString("minutes", comment: "age in minutes"))
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }

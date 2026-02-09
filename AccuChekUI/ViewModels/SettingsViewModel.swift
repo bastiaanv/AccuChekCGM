@@ -58,14 +58,14 @@ extension SettingsViewModel: StateObserver {
             lastMeasurementDatetime = timeFormatter.string(from: date)
         }
 
-        if let cgmEndTime = state.cgmEndTime {
+        if let cgmStartTime = state.cgmStartTime, let cgmEndTime = state.cgmEndTime {
             let sensorAge = cgmEndTime.timeIntervalSinceNow
-            let sensorEndsIn = .days(14) - sensorAge
 
-            sensorAgeProcess = min(sensorAge / .days(14), 1)
-            sensorAgeDays = max(floor(sensorEndsIn / .days(1)), 0)
-            sensorAgeHours = max(sensorEndsIn.truncatingRemainder(dividingBy: .days(1)) / .hours(1), 0)
-            sensorAgeMinutes = max(sensorEndsIn.truncatingRemainder(dividingBy: .hours(1)) / .minutes(1), 0)
+            sensorAgeProcess = min(cgmStartTime.timeIntervalSinceNow * -1 / .days(14), 1)
+
+            sensorAgeDays = max(floor(sensorAge / .days(1)), 0)
+            sensorAgeHours = max(sensorAge.truncatingRemainder(dividingBy: .days(1)) / .hours(1), 0)
+            sensorAgeMinutes = max(sensorAge.truncatingRemainder(dividingBy: .hours(1)) / .minutes(1), 0)
         }
     }
 }

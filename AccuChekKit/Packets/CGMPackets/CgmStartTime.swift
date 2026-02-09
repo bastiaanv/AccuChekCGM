@@ -1,9 +1,9 @@
 import Foundation
 
-public class CgmStartTime {
+class CgmStartTime {
     let start: Date
 
-    public init(_ data: Data) {
+    init(_ data: Data) {
         let timezone = SessionTimeZone(rawValue: data[7])?.timeZone
         let components = DateComponents(
             timeZone: timezone,
@@ -17,7 +17,7 @@ public class CgmStartTime {
         start = Calendar.current.date(from: components) ?? Date.distantPast
     }
 
-    public var describe: String {
+    var describe: String {
         "[CgmStartTime] start: \(start)"
     }
 }

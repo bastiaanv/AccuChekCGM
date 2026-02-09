@@ -1,7 +1,7 @@
 import Foundation
 import LoopKit
 
-public class CgmMeasurement {
+class CgmMeasurement {
     let flags: UInt8
     let glucoseInMgDl: UInt16
     let timeOffset: TimeInterval
@@ -9,7 +9,7 @@ public class CgmMeasurement {
     let trend: Double?
     let quality: Double?
 
-    public init(_ data: Data) {
+    init(_ data: Data) {
         flags = data[1]
         glucoseInMgDl = UInt16(data.getDouble(offset: 2))
         timeOffset = TimeInterval.minutes(Double(data.getUInt16(offset: 4)))
@@ -48,7 +48,7 @@ public class CgmMeasurement {
         }
     }
 
-    public var describe: String {
+    var describe: String {
         "[CgmMeasurement] glucoseInMgDl: \(glucoseInMgDl)mg/dl, timeOffset: \(timeOffset), flags=\(flags), statusValues=\(statusValues.hexString()), trend=\(String(describing: trend)), quality=\(String(describing: quality))"
     }
 

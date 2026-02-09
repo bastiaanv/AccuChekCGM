@@ -1,9 +1,11 @@
+import LoopKitUI
 import SwiftUI
 
 struct PairingView: View {
     @ObservedObject var viewModel: PairingViewModel
 
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        Text(LocalizedString("Pairing with CGM", comment: ""))
+        ActivityIndicator(isAnimating: .constant(true), style: .medium)
     }
 }

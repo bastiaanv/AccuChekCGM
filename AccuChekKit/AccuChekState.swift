@@ -124,7 +124,7 @@ struct AccuChekState: RawRepresentable, Equatable {
             "* serialNumber: \(String(describing: serialNumber))",
             "* isConnected: \(isConnected)",
             "* cgmStartTime: \(String(describing: cgmStartTime))",
-            "* lastGlucoseOffset: \(String(describing: lastGlucoseOffset))",
+            "* lastGlucoseOffset: \(String(describing: lastGlucoseOffset?.minutes))",
             "* lastGlucoseDate: \(String(describing: lastGlucoseDate))",
             "* lastGlucoseValue: \(String(describing: lastGlucoseValue))",
             "* lastGlucoseTrend: \(String(describing: lastGlucoseTrend))"
