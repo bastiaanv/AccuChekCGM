@@ -3,6 +3,7 @@ name: Tolgee Upload translations
 on:
   push:
     branches: [ "master" ]
+    paths: ["AccuChekUI/Localizable.xcstring"]
 
 jobs:
   translations:
