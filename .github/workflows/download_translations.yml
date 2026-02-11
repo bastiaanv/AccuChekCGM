@@ -1,6 +1,8 @@
 name: Tolgee Download translations
 
 on: workflow_dispatch
+permissions:
+  contents: write
 
 jobs:
   translations:
@@ -13,3 +15,9 @@ jobs:
         TOLGEE_URL: ${{ secrets.TOLGEE_URL }}
         TOLGEE_KEY: ${{ secrets.TOLGEE_KEY }}
       run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY pull
+    - name: Commit new translations
+      run: |
+        git config --global user.name 'tolgee-bot'
+        git config --global user.email 'bastiaanv@users.noreply.github.com'
+        git commit -am "[Tolgee]: update translations"
+        git push
