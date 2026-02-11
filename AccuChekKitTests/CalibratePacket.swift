@@ -7,6 +7,6 @@ class CalibratePacketTests {
         let packet = CalibratePacket(glucoseInMgDl: 100, cgmStartTime: Date.now.addingTimeInterval(.minutes(-30)))
 
         print(packet.getRequest().hexString())
-        #expect(packet.getRequest().count > 0)
+        #expect(!packet.getRequest().isEmpty)
     }
 }

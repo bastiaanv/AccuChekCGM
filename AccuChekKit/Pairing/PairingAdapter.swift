@@ -11,7 +11,6 @@ protocol PairingAdapter {
 
 extension PairingAdapter {
     func configureSensor() {
-        _ = getSensorInfo()
         getSensorStatus()
         getSensorStartTime()
 
@@ -64,74 +63,8 @@ extension PairingAdapter {
         }
 
         let response = SensorStatus(data: statusData)
+        cgmManager.notifyNewStatus(response)
+
         logger.info(response.describe)
-    }
-
-    func getSensorInfo() -> SensorInfo? {
-        guard let manufacturer = peripheralManager.read(service: CBUUID.DIS_SERVICE, characteristic: CBUUID.DIS_MANUFACTURER)
-        else {
-            logger.error("Failed to read manufacturer")
-            return nil
-        }
-
-        guard let model = peripheralManager.read(service: CBUUID.DIS_SERVICE, characteristic: CBUUID.DIS_MODEL)
-        else {
-            logger.error("Failed to read model")
-            return nil
-        }
-
-        guard let serialNumber = peripheralManager.read(service: CBUUID.DIS_SERVICE, characteristic: CBUUID.DIS_SERIAL_NUMBER)
-        else {
-            logger.error("Failed to read firmware revision")
-            return nil
-        }
-
-        var firmware: String = ""
-        var hardware: String = ""
-        var software: String = ""
-        if self as? AcsAdapter != nil {
-            guard let firmwareData = peripheralManager.read(
-                service: CBUUID.DIS_SERVICE,
-                characteristic: CBUUID.DIS_FIRMWARE_REVISION
-            )
-            else {
-                logger.error("Failed to read firmware revision")
-                return nil
-            }
-            firmware = firmwareData.toString()
-
-            guard let hardwareData = peripheralManager.read(
-                service: CBUUID.DIS_SERVICE,
-                characteristic: CBUUID.DIS_HARDWARE_REVISION
-            )
-            else {
-                logger.error("Failed to read firmware revision")
-                return nil
-            }
-            hardware = hardwareData.toString()
-
-            guard let softwareData = peripheralManager.read(
-                service: CBUUID.DIS_SERVICE,
-                characteristic: CBUUID.DIS_SOFTWARE_REVISION
-            )
-            else {
-                logger.error("Failed to read firmware revision")
-                return nil
-            }
-
-            software = softwareData.toString()
-        }
-
-        let sensorInfo = SensorInfo(
-            manufacturer: manufacturer.toString(),
-            model: model.toString(),
-            serialNumber: serialNumber.toString(),
-            firmwareRevision: firmware,
-            hardwareRevision: hardware,
-            softwareRevision: software
-        )
-
-        logger.info(sensorInfo.describe)
-        return sensorInfo
     }
 }

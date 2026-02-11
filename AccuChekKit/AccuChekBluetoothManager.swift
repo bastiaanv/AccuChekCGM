@@ -15,8 +15,7 @@ class AccuChekBluetoothManager: NSObject {
     override init() {
         super.init()
 
-        // Allow CGM manager to init before starting BLE process
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
+        managerQueue.sync {
             self.manager = CBCentralManager(
                 delegate: self,
                 queue: self.managerQueue,

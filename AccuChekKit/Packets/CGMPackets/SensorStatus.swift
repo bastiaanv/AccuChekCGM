@@ -54,6 +54,56 @@ enum SensorStatusEnum: UInt8 {
     case sensorResultLowerThanDeviceCanProcess = 22
     case sensorResultHigherThanDeviceCanProcess = 23
 
+    private static let identifierPrefix = "com.bastiaanv.AccuChekKit."
+    var notification: NotificationContent? {
+        switch self {
+        case .sessionStopped:
+            return NotificationContent(
+                identifier: SensorStatusEnum.identifierPrefix + "sessionStopped",
+                title: LocalizedString("Sensor expired!", comment: "Title sensor expired"),
+                content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
+            )
+        case .deviceBatteryLow:
+            return NotificationContent(
+                identifier: SensorStatusEnum.identifierPrefix + "deviceBatteryLow",
+                title: LocalizedString("Sensor battery is low", comment: "title battery low"),
+                content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
+            )
+        case .sensorMalfunction,
+                .generalDeviceFaultOccuredInSensor:
+            return NotificationContent(
+                identifier: SensorStatusEnum.identifierPrefix + "sensorMalfunction",
+                title: LocalizedString("Sensor is malfunctioning", comment: "title sensor fault"),
+                content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
+            )
+        case .calibrationRecommended:
+            return NotificationContent(
+                identifier: SensorStatusEnum.identifierPrefix + "calibrationRecommended",
+                title: LocalizedString("Sensor calibration", comment: "title sensor fault"),
+                content: LocalizedString("Calibration is recommended", comment: "description sensor calibration recommend"),
+            )
+        case .calibrationRequired:
+            return NotificationContent(
+                identifier: SensorStatusEnum.identifierPrefix + "calibrationRequired",
+                title: LocalizedString("Sensor calibration", comment: "title sensor fault"),
+                content: LocalizedString("Calibrate your sensor now", comment: "description sensor calibration required"),
+            )
+        case .sensorTemperatureTooHigh:
+            return NotificationContent(
+                identifier: SensorStatusEnum.identifierPrefix + "sensorTemperatureTooHigh",
+                title: LocalizedString("Sensor temperature too high", comment: "title sensor temp high"),
+                content: LocalizedString("Go to a cooler place to cooldown the sensor", comment: "description sensor temp high"),
+            )
+        case .sensorTemperatureTooLow:
+            return NotificationContent(
+                identifier: SensorStatusEnum.identifierPrefix + "sensorTemperatureTooLow",
+                title: LocalizedString("Sensor temperature too low", comment: "title sensor temp low"),
+                content: LocalizedString("Go to a warmer place to warmup the sensor", comment: "description sensor temp low"),
+            )
+        default: return nil
+        }
+    }
+
     static let allCases: [SensorStatusEnum] = [
         .sessionStopped,
         .deviceBatteryLow,

@@ -30,6 +30,9 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var serialNumber: String?
     public var certificate: Certificate?
 
+    public var cgmStatus: [SensorStatusEnum]
+    public var cgmStatusTimestamp: Date?
+
     // Authentication of CGM
     public var pinCode: String?
     public var keyAgreementPrivate: Data?
@@ -60,6 +63,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         mtu = rawValue["mtu"] as? UInt16 ?? 20
         deviceName = rawValue["deviceName"] as? String
         serialNumber = rawValue["serialNumber"] as? String
+        cgmStatusTimestamp = rawValue["cgmStatusTimestamp"] as? Date
         pinCode = rawValue["pinCode"] as? String
         keyAgreementPrivate = rawValue["keyAgreementPrivate"] as? Data
         aesKey = rawValue["aesKey"] as? Data
@@ -76,6 +80,12 @@ struct AccuChekState: RawRepresentable, Equatable {
             lastGlucoseTrend = GlucoseTrend(rawValue: rawLastGlucoseTrend) ?? .flat
         } else {
             lastGlucoseTrend = .flat
+        }
+
+        if let rawCgmStatus = rawValue["cgmStatus"] as? [SensorStatusEnum.RawValue] {
+            cgmStatus = rawCgmStatus.compactMap { SensorStatusEnum(rawValue: $0) }
+        } else {
+            cgmStatus = []
         }
 
         do {
@@ -100,6 +110,8 @@ struct AccuChekState: RawRepresentable, Equatable {
         raw["keyAgreementPrivate"] = keyAgreementPrivate
         raw["aesKey"] = aesKey
         raw["aesNonce"] = aesNonce
+        raw["cgmStatus"] = cgmStatus.map(\.rawValue)
+        raw["cgmStatusTimestamp"] = cgmStatusTimestamp
         raw["cgmStartTime"] = cgmStartTime
         raw["lastGlucoseOffset"] = lastGlucoseOffset
         raw["lastGlucoseDate"] = lastGlucoseDate
@@ -124,6 +136,8 @@ struct AccuChekState: RawRepresentable, Equatable {
             "* serialNumber: \(String(describing: serialNumber))",
             "* isConnected: \(isConnected)",
             "* cgmStartTime: \(String(describing: cgmStartTime))",
+            "* cgmStatus: \(String(describing: cgmStatus))",
+            "* cgmStatusTimestamp: \(String(describing: cgmStatusTimestamp))",
             "* lastGlucoseOffset: \(String(describing: lastGlucoseOffset?.minutes))",
             "* lastGlucoseDate: \(String(describing: lastGlucoseDate))",
             "* lastGlucoseValue: \(String(describing: lastGlucoseValue))",

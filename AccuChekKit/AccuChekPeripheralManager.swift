@@ -10,10 +10,10 @@ class AccuChekPeripheralManager: NSObject {
 
     internal var pairingAdapter: PairingAdapter?
 
-    private var readQueue: NSCondition?
+    private var readQueue: (NSCondition, CBUUID)?
     private var readData = Data()
 
-    private var writeQueue: NSCondition?
+    private var writeQueue: (NSCondition, CBUUID)?
     private var writeData = Data()
 
     internal var mtu: Int = 20
@@ -40,7 +40,7 @@ class AccuChekPeripheralManager: NSObject {
         }
 
         let readQ = NSCondition()
-        readQueue = readQ
+        readQueue = (readQ, characteristicUUID)
         peripheral.readValue(for: characteristic)
 
         readQ.lock()
@@ -61,7 +61,7 @@ class AccuChekPeripheralManager: NSObject {
         }
 
         var writeQ = NSCondition()
-        writeQueue = writeQ
+        writeQueue = (writeQ, characteristicUUID)
 
         for item in segmentData(data: packet.getRequest(), mtu: mtu) {
             logger.debug("Writing \(item.hexString()) to \(characteristic.uuid.uuidString)")
@@ -91,7 +91,7 @@ class AccuChekPeripheralManager: NSObject {
             writeData = Data()
 
             writeQ = NSCondition()
-            writeQueue = writeQ
+            writeQueue = (writeQ, characteristicUUID)
         }
 
         return true
@@ -231,14 +231,16 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
 
+        // TODO: Double check if the readQueue is for that characterist:
+        // Crash -> 4222000200b762 - 2AA9 WHILE READING FOR char 2AAA
         logger.debug("Recieved data: \(data.hexString()), characteristic: \(characteristic.uuid.uuidString)")
-        if let readQueue = readQueue {
+        if let (readQueue, readCharacteristic) = readQueue, readCharacteristic == characteristic.uuid {
             readData = data
             readQueue.signal()
             return
         }
 
-        if let writeQueue = writeQueue {
+        if let (writeQueue, writeCharacteristic) = writeQueue, writeCharacteristic == characteristic.uuid {
             writeData.append(data)
             writeQueue.signal()
             return

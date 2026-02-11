@@ -110,6 +110,19 @@ public class AccuChekCgmManager: CGMManager {
         }
     }
 
+    func notifyNewStatus(_ status: SensorStatus) {
+        state.cgmStatus = status.status
+        state.cgmStatusTimestamp = Date.now
+        notifyStateDidChange()
+        
+        let notifications = status.status.compactMap { $0.notification }
+        if !notifications.isEmpty {
+            NotificationHelper.sendCgmAlert(alerts: notifications)
+        }
+    }
+}
+
+extension AccuChekCgmManager {
     func addStateObserver(state: StateObserver, queue: DispatchQueue) {
         stateObservers.insert(state, queue: queue)
     }
