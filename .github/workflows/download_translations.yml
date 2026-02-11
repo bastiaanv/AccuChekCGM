@@ -1,4 +1,4 @@
-name: Tolgee Upload translations
+name: Tolgee Download translations
 
 on: workflow_dispatch
 
