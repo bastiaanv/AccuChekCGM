@@ -114,8 +114,8 @@ public class AccuChekCgmManager: CGMManager {
         state.cgmStatus = status.status
         state.cgmStatusTimestamp = Date.now
         notifyStateDidChange()
-        
-        let notifications = status.status.compactMap { $0.notification }
+
+        let notifications = status.status.compactMap(\.notification)
         if !notifications.isEmpty {
             NotificationHelper.sendCgmAlert(alerts: notifications)
         }

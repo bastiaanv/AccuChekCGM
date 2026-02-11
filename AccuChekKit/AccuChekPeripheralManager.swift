@@ -231,8 +231,6 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             return
         }
 
-        // TODO: Double check if the readQueue is for that characterist:
-        // Crash -> 4222000200b762 - 2AA9 WHILE READING FOR char 2AAA
         logger.debug("Recieved data: \(data.hexString()), characteristic: \(characteristic.uuid.uuidString)")
         if let (readQueue, readCharacteristic) = readQueue, readCharacteristic == characteristic.uuid {
             readData = data
@@ -251,6 +249,14 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             logger.info(measurement.describe)
 
             cgmManager.notifyNewData(measurements: [measurement])
+            return
+        }
+
+        if characteristic.uuid == CBUUID.CGM_STATUS {
+            let status = SensorStatus(data: data)
+            logger.info(status.describe)
+
+            cgmManager.notifyNewStatus(status)
             return
         }
 

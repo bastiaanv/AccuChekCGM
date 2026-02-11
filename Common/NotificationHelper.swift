@@ -16,7 +16,7 @@ enum NotificationHelper {
                 let content = UNMutableNotificationContent()
                 content.title = $0.title
                 content.body = $0.content
-                
+
                 addRequest(identifier: $0.identifier, content: content)
             }
         }

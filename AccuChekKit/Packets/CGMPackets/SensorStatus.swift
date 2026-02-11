@@ -69,8 +69,8 @@ enum SensorStatusEnum: UInt8 {
                 title: LocalizedString("Sensor battery is low", comment: "title battery low"),
                 content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
             )
-        case .sensorMalfunction,
-                .generalDeviceFaultOccuredInSensor:
+        case .generalDeviceFaultOccuredInSensor,
+             .sensorMalfunction:
             return NotificationContent(
                 identifier: SensorStatusEnum.identifierPrefix + "sensorMalfunction",
                 title: LocalizedString("Sensor is malfunctioning", comment: "title sensor fault"),
