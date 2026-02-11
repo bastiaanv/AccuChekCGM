@@ -1,4 +1,4 @@
-name: Tolgee translations
+name: Tolgee Upload translations
 
 on:
   push:
@@ -15,8 +15,3 @@ jobs:
         TOLGEE_URL: ${{ secrets.TOLGEE_URL }}
         TOLGEE_KEY: ${{ secrets.TOLGEE_KEY }}
       run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY push
-    - name: Pull translations
-      env:
-        TOLGEE_URL: ${{ secrets.TOLGEE_URL }}
-        TOLGEE_KEY: ${{ secrets.TOLGEE_KEY }}
-      run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY pull

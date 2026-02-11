@@ -8,6 +8,7 @@
     "language": ["en"]
   },
   "pull": {
-    "path": "./AccuChekUI/Localizable.xcstrings"
+    "path": "./AccuChekUI",
+    "states": ["REVIEWED"]
   }
 }

@@ -1,0 +1,15 @@
+name: Tolgee Upload translations
+
+on: workflow_dispatch
+
+jobs:
+  translations:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - name: Pull translations
+      env:
+        TOLGEE_URL: ${{ secrets.TOLGEE_URL }}
+        TOLGEE_KEY: ${{ secrets.TOLGEE_KEY }}
+      run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY pull
