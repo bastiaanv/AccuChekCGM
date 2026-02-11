@@ -10,5 +10,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
-    - run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY push
-    - run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY pull
+    - name: Push translations
+      env:
+        TOLGEE_URL: ${{ secrets.TOLGEE_URL }}
+        TOLGEE_KEY: ${{ secrets.TOLGEE_KEY }}
+      run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY push
+    - name: Pull translations
+      env:
+        TOLGEE_URL: ${{ secrets.TOLGEE_URL }}
+        TOLGEE_KEY: ${{ secrets.TOLGEE_KEY }}
+      run: npx --yes @tolgee/cli -au $TOLGEE_URL -ak $TOLGEE_KEY pull
