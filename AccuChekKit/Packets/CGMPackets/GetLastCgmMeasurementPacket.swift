@@ -1,3 +1,4 @@
+import CoreBluetooth
 import Foundation
 
 class GetLastCgmMeasurementPacket: AccuChekBasePacket {
@@ -6,6 +7,10 @@ class GetLastCgmMeasurementPacket: AccuChekBasePacket {
 
     var describe: String {
         "[GetLastCgmMeasurementPacket] count=\(measurements.count)"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.CGM_MEASUREMENT, CBUUID.CGM_RACP]
     }
 
     let startOffset: UInt16

@@ -1,8 +1,13 @@
+import CoreBluetooth
 import Foundation
 
 class KeyExchangeEcdhPacket: AccuChekBasePacket {
     var describe: String {
         "[KeyExchangeEcdhPacket] xCoord=\(xCoord.hexString()), yCoord=\(yCoord.hexString())"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.ACS_CONTROL_POINT]
     }
 
     var xCoord = Data()

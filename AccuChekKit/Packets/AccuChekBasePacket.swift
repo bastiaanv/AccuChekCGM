@@ -1,7 +1,9 @@
+import CoreBluetooth
 import Foundation
 
 protocol AccuChekBasePacket {
     var describe: String { get }
+    var characteristics: [CBUUID] { get }
 
     func getRequest() -> Data
     func parseResponse(data: Data)

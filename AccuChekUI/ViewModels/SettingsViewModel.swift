@@ -12,6 +12,7 @@ class SettingsViewModel: ObservableObject {
     @Published var sensorAgeDays: Double = 0
     @Published var sensorAgeHours: Double = 0
     @Published var sensorAgeMinutes: Double = 0
+    @Published var notifications: [NotificationContent] = []
 
     @Published var isSharePresented = false
     @Published var showingDeleteConfirmation = false
@@ -49,6 +50,7 @@ extension SettingsViewModel: StateObserver {
     func stateDidUpdate(_ state: AccuChekState) {
         connected = state.isConnected
         deviceName = state.deviceName ?? ""
+        notifications = state.cgmStatus.compactMap(\.notification)
 
         if let glucose = state.lastGlucoseValue {
             lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose))

@@ -1,9 +1,14 @@
+import CoreBluetooth
 import CryptoKit
 import Foundation
 
 class KeyExchangeEcdConfirmationPacket: AccuChekBasePacket {
     var describe: String {
         "[KeyExchangeEcdConfirmationPacket] confirmationCode=\(confirmationCode.hexString())"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.ACS_CONTROL_POINT]
     }
 
     var confirmationCode = Data()

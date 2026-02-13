@@ -3,7 +3,11 @@ import UserNotifications
 
 private var logger = AccuChekLogger(category: "NotificationHelper")
 
-struct NotificationContent {
+struct NotificationContent: Identifiable {
+    let id = UUID()
+
+    let type: SensorStatusEnum
+
     let identifier: String
     let title: String
     let content: String

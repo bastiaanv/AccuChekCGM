@@ -1,8 +1,13 @@
+import CoreBluetooth
 import Foundation
 
 class SetAcClientNonceFixedPacket: AccuChekBasePacket {
     var describe: String {
         "[SetAcClientNonceFixedPacket] responseCode=\(responseCode)"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.ACS_CONTROL_POINT]
     }
 
     var responseCode: UInt8 = 0

@@ -57,6 +57,29 @@ struct SettingsView: View {
                     cgmSerialNumber
                 }
                 .padding(.bottom, 5)
+
+                if !viewModel.notifications.isEmpty {
+                    ForEach(viewModel.notifications) { notification in
+                        HStack(alignment: .center) {
+                            VStack(alignment: .leading) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundStyle(.red)
+                                    Text(notification.title)
+                                        .foregroundStyle(.primary)
+                                }
+                                Text(notification.content)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if notification.type == .calibrationRequired || notification.type == .calibrationRecommended {
+                                Button(action: {}) {
+                                    Text(LocalizedString("Start", comment: "calibration start button"))
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             Section {

@@ -10,11 +10,8 @@ class AccuChekPeripheralManager: NSObject {
 
     internal var pairingAdapter: PairingAdapter?
 
-    private var readQueue: (NSCondition, CBUUID)?
-    private var readData = Data()
-
-    private var writeQueue: (NSCondition, CBUUID)?
-    private var writeData = Data()
+    private var readQueue: (AccuChekDispatchGroup, CBUUID)?
+    private var writeQueue: (AccuChekDispatchGroup, [CBUUID])?
 
     internal var mtu: Int = 20
     internal var aesCgmKey: SymmetricKey?
@@ -39,20 +36,16 @@ class AccuChekPeripheralManager: NSObject {
             return nil
         }
 
-        let readQ = NSCondition()
+        let readQ = AccuChekDispatchGroup()
+        readQ.enter()
         readQueue = (readQ, characteristicUUID)
         peripheral.readValue(for: characteristic)
 
-        readQ.lock()
         defer {
-            readQ.unlock()
-            readData = Data()
             readQueue = nil
         }
 
-        // Wait for response or timeout timer...
-        readQ.wait(until: Date.now.addingTimeInterval(15))
-        return readData
+        return readQ.wait(timeout: .now() + .seconds(10))
     }
 
     func write(packet: AccuChekBasePacket, service serviceUUID: CBUUID, characteristic characteristicUUID: CBUUID) -> Bool {
@@ -60,8 +53,13 @@ class AccuChekPeripheralManager: NSObject {
             return false
         }
 
-        var writeQ = NSCondition()
-        writeQueue = (writeQ, characteristicUUID)
+        var writeQ = AccuChekDispatchGroup()
+        writeQ.enter()
+        writeQueue = (writeQ, packet.characteristics)
+
+        defer {
+            writeQueue = nil
+        }
 
         for item in segmentData(data: packet.getRequest(), mtu: mtu) {
             logger.debug("Writing \(item.hexString()) to \(characteristic.uuid.uuidString)")
@@ -73,25 +71,20 @@ class AccuChekPeripheralManager: NSObject {
             Thread.sleep(forTimeInterval: .milliseconds(100))
         }
 
-        writeQ.lock()
-        defer {
-            writeQ.unlock()
-            writeData = Data()
-            writeQueue = nil
-        }
-
         while !packet.isComplete() {
             // Wait for response or timeout timer...
-            if !writeQ.wait(until: Date.now.addingTimeInterval(10)) || writeData.isEmpty {
-                logger.error("Timeout has been hit...")
+            let result = writeQ.wait(timeout: .now() + .seconds(10))
+            guard let result else {
+                logger.error("Timeout has been hit")
+                writeQueue = nil
                 return false
             }
 
-            packet.parseResponse(data: writeData)
-            writeData = Data()
+            packet.parseResponse(data: result)
 
-            writeQ = NSCondition()
-            writeQueue = (writeQ, characteristicUUID)
+            writeQ = AccuChekDispatchGroup()
+            writeQ.enter()
+            writeQueue = (writeQ, packet.characteristics)
         }
 
         return true
@@ -233,14 +226,12 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
 
         logger.debug("Recieved data: \(data.hexString()), characteristic: \(characteristic.uuid.uuidString)")
         if let (readQueue, readCharacteristic) = readQueue, readCharacteristic == characteristic.uuid {
-            readData = data
-            readQueue.signal()
+            readQueue.leave(Data(data))
             return
         }
 
-        if let (writeQueue, writeCharacteristic) = writeQueue, writeCharacteristic == characteristic.uuid {
-            writeData.append(data)
-            writeQueue.signal()
+        if let (writeQueue, writeCharacteristic) = writeQueue, writeCharacteristic.contains(characteristic.uuid) {
+            writeQueue.leave(Data(data))
             return
         }
 

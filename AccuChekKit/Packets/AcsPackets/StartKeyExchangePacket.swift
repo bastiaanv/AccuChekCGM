@@ -1,8 +1,13 @@
+import CoreBluetooth
 import Foundation
 
 class StartKeyExchangePacket: AccuChekBasePacket {
     var describe: String {
         "[StartKeyExchangePacket] responseCode=\(responseCode)"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.ACS_CONTROL_POINT]
     }
 
     var responseCode: UInt8 = 0

@@ -1,3 +1,4 @@
+import CoreBluetooth
 import Foundation
 
 class GetAllActiveDescriptorsPacket: AccuChekBasePacket {
@@ -6,6 +7,10 @@ class GetAllActiveDescriptorsPacket: AccuChekBasePacket {
 
     var describe: String {
         "[GetAllActiveDescriptorsPacket] #securityConf=\(securityConfigurations.count), hasAesCgm=\(getAesCgm() != nil), hasEcdh=\(getEcdh() != nil)"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.ACS_CONTROL_POINT]
     }
 
     func getRequest() -> Data {

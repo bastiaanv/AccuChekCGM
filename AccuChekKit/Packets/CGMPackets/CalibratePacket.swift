@@ -1,8 +1,13 @@
+import CoreBluetooth
 import Foundation
 
 class CalibratePacket: AccuChekBasePacket {
     var describe: String {
         "[CalibratePacket] responseCode=\(responseCode)"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.CGM_CONTROL_POINT]
     }
 
     var responseCode: UInt8 = 0

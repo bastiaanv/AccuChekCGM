@@ -1,3 +1,4 @@
+import CoreBluetooth
 import Foundation
 
 class GetAttMtuPacket: AccuChekBasePacket {
@@ -5,6 +6,10 @@ class GetAttMtuPacket: AccuChekBasePacket {
 
     var describe: String {
         "[GetAttMtuPacket] mtu=\(mtu)"
+    }
+
+    var characteristics: [CBUUID] {
+        [CBUUID.ACS_CONTROL_POINT]
     }
 
     func getRequest() -> Data {

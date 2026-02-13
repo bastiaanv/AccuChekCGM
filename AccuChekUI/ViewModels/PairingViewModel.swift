@@ -3,7 +3,26 @@ import CryptoKit
 import LoopKit
 import SwiftUI
 
+enum PairingState {
+    case scanning
+    case connecting
+    
+    var text: String {
+        switch self {
+        case .scanning:
+            return LocalizedString("Scanning for Accu Chek CGMs", comment: "scanning")
+        case .connecting:
+            return LocalizedString("Connecting with your Accu Chek CGM!", comment: "connecting")
+        }
+    }
+}
+
 class PairingViewModel: ObservableObject {
+    @Published var state: PairingState = .scanning
+    @Published var foundDevices: [ScanResult] = []
+    @Published var foundDeviceLast: ScanResult? = nil
+    @Published var showConfirmationAlert = false
+    
     private let logger = AccuChekLogger(category: "PairingViewModel")
 
     private let cgmManager: AccuChekCgmManager?
@@ -58,27 +77,43 @@ class PairingViewModel: ObservableObject {
             return
         }
 
+        let previousDeviceName = cgmManager.state.deviceName
         cgmManager.bluetooth.startScan { result in
-            if result.deviceName != "AC-1R000667359" {
-                self.logger.warning("This is not the device you are looking for : \(result.deviceName)")
+            if result.deviceName != previousDeviceName {
+                self.logger.warning("Found previous CGM while scanning: \(result.deviceName)")
                 return
             }
 
-            cgmManager.state.serialNumber = result.deviceName
+            // Found device (propably)
+            cgmManager.bluetooth.stopScan()
+            DispatchQueue.main.async {
+                self.foundDevices.append(result)
+                self.foundDeviceLast = result
+                self.showConfirmationAlert = true
+            }
+        }
+    }
+    
+    func connect(result: ScanResult) {
+        guard let cgmManager else {
+            logger.error("No CGM manager to start scanning")
+            return
+        }
+        
+        cgmManager.state.deviceName = result.deviceName
+        cgmManager.notifyStateDidChange()
+
+        cgmManager.bluetooth.connect(to: result.peripheral) { error in
+            if let error {
+                self.logger.error("Failed to connect to CGM: \(error)")
+                return
+            }
+
+            cgmManager.state.onboarded = true
+            cgmManager.state.deviceName = result.deviceName
             cgmManager.notifyStateDidChange()
 
-            cgmManager.bluetooth.connect(to: result.peripheral) { error in
-                if let error {
-                    self.logger.error("Failed to connect to CGM: \(error)")
-                    return
-                }
-
-                cgmManager.state.onboarded = true
-                cgmManager.state.deviceName = result.deviceName
-                cgmManager.notifyStateDidChange()
-
-                self.nextStep()
-            }
+            self.nextStep()
         }
     }
 }
