@@ -3351,6 +3351,7 @@
     },
     "Start" : {
       "comment" : "calibration start button",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

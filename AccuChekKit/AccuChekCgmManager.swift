@@ -114,6 +114,10 @@ public class AccuChekCgmManager: CGMManager {
         state.cgmStatus = status.status
         state.cgmStatusTimestamp = Date.now
         notifyStateDidChange()
+        
+        if status.status.contains(where: { $0 == .timeSynchronizationRequired }) {
+            
+        }
 
         let notifications = status.status.compactMap(\.notification)
         if !notifications.isEmpty {

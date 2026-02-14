@@ -28,6 +28,11 @@ final class AccuChekDispatchGroup {
         group.leave()
     }
 
+    @discardableResult func wait() -> Data? {
+        group.wait()
+        return data
+    }
+
     @discardableResult func wait(timeout: DispatchTime) -> Data? {
         _ = group.wait(timeout: timeout)
         return data

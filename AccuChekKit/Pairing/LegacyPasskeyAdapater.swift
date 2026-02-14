@@ -11,13 +11,18 @@ class LegacyPasskeyAdapater: PairingAdapter {
         self.cgmManager = cgmManager
     }
 
-    func pair() {
-        guard let cgmStatus = peripheralManager.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
+    func pair() -> Bool {
+        guard let cgmStatus = peripheralManager.read(
+            service: CBUUID.CGM_SERVICE,
+            characteristic: CBUUID.CGM_STATUS,
+            withoutTimeout: true
+        ) else {
             logger.error("Failed to read cgmStatus")
-            return
+            return false
         }
 
         logger.info("CGM status: \(cgmStatus.hexString())")
+        return true
     }
 
     func initialize() -> Bool {

@@ -1,5 +1,6 @@
 import CoreBluetooth
 import CryptoKit
+import UIKit
 
 class AccuChekPeripheralManager: NSObject {
     private let logger = AccuChekLogger(category: "PeripheralManager")
@@ -9,6 +10,7 @@ class AccuChekPeripheralManager: NSObject {
     private var connecionCompletion: ((AccuChekError?) -> Void)?
 
     internal var pairingAdapter: PairingAdapter?
+    private var isPairing: Bool = false
 
     private var readQueue: (AccuChekDispatchGroup, CBUUID)?
     private var writeQueue: (AccuChekDispatchGroup, [CBUUID])?
@@ -27,11 +29,10 @@ class AccuChekPeripheralManager: NSObject {
         }
 
         super.init()
-
         peripheral.delegate = self
     }
 
-    func read(service serviceUUID: CBUUID, characteristic characteristicUUID: CBUUID) -> Data? {
+    func read(service serviceUUID: CBUUID, characteristic characteristicUUID: CBUUID, withoutTimeout: Bool = false) -> Data? {
         guard let characteristic = getCharacteristic(serviceUUID: serviceUUID, characteristicUUID: characteristicUUID) else {
             return nil
         }
@@ -45,7 +46,11 @@ class AccuChekPeripheralManager: NSObject {
             readQueue = nil
         }
 
-        return readQ.wait(timeout: .now() + .seconds(10))
+        if withoutTimeout {
+            return readQ.wait()
+        } else {
+            return readQ.wait(timeout: .now() + .seconds(10))
+        }
     }
 
     func write(packet: AccuChekBasePacket, service serviceUUID: CBUUID, characteristic characteristicUUID: CBUUID) -> Bool {
@@ -200,7 +205,10 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             }
             self.pairingAdapter = pairingAdapter
 
-            pairingAdapter.pair()
+            if !pairingAdapter.pair() {
+                logger.error("Failed to pair device...")
+                return
+            }
             if !pairingAdapter.initialize() {
                 logger.error("Initialization failed...")
                 return

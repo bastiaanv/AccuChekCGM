@@ -10,7 +10,10 @@ struct OnboardingView: View {
             Text(LocalizedString("Welcome!", comment: "welcome"))
                 .font(.largeTitle)
                 .bold()
-            Text(LocalizedString("When clicking Continue, you will scan for your Accu chek CGM. Make sure you have the PIN ready for pairing with your phone!", comment: "explain welcome"))
+            Text(LocalizedString(
+                "When clicking Continue, you will scan for your Accu chek CGM. Make sure you have the PIN ready for pairing with your phone!",
+                comment: "explain welcome"
+            ))
 
             Spacer()
             Button(action: { nextStep() }) {

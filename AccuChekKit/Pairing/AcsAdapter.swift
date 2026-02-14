@@ -13,16 +13,17 @@ class AcsAdapter: PairingAdapter {
         self.peripheralManager = peripheralManager
     }
 
-    func pair() {
+    func pair() -> Bool {
         guard peripheralManager.read(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_STATUS) != nil else {
             logger.error("Failed to read ACS status")
-            return
+            return false
         }
 
         peripheralManager.startNotify(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_DATA_OUT_NOTIFY)
         peripheralManager.startNotify(service: CBUUID.ACS_SERVICE, characteristic: CBUUID.ACS_DATA_OUT_INDICATE)
 
         sensorRevisionInfo = getSensorInfo()
+        return true
     }
 
     func initialize() -> Bool {

@@ -51,23 +51,6 @@ extension Data {
         var randomNumberGenerator = SecRandomNumberGenerator()
         return Data((0 ..< length).map { _ in UInt8.random(in: UInt8.min ... UInt8.max, using: &randomNumberGenerator) })
     }
-
-    private func getExponent(value: UInt16) -> Double {
-        // TODO: Fixme
-        if value < 0 {
-            return Double(((value >> 12) & 0x0F) | 0xF0)
-        }
-
-        return Double((value >> 12) & 0x0F)
-    }
-
-    private func getMantissa(value: UInt16) -> UInt16 {
-        if (value & 0x0800) != 0 {
-            return UInt16((value & 0x0FFF) | 0xF000)
-        }
-
-        return UInt16(value & 0x0FFF)
-    }
 }
 
 extension UInt8 {

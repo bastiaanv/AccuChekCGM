@@ -7,6 +7,9 @@ struct PairingView: View {
     var body: some View {
         VStack {
             Text(viewModel.state.text)
+                .foregroundStyle(.primary)
+            Text(viewModel.state.desciption)
+                .foregroundStyle(.secondary)
             ActivityIndicator(isAnimating: .constant(true), style: .medium)
         }
         .alert(
