@@ -1,7 +1,6 @@
 import Foundation
 
 extension Data {
-
     private static let crcTable: [UInt16] = [
         0, 4489, 8978, 12955, 17956, 22445, 25910, 29887, 35912, 40385,
         44890, 48851, 51820, 56293, 59774, 63735, 4225, 264, 13203, 8730,
@@ -32,7 +31,7 @@ extension Data {
     ]
 
     private func generateCrc16() -> UInt16 {
-        var crc: UInt16 = UInt16.max
+        var crc = UInt16.max
 
         for byte in self {
             let index = Int((crc ^ UInt16(byte)) & 0x00FF)

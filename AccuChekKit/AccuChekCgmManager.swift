@@ -114,15 +114,26 @@ public class AccuChekCgmManager: CGMManager {
         state.cgmStatus = status.status
         state.cgmStatusTimestamp = Date.now
         notifyStateDidChange()
-        
-        if status.status.contains(where: { $0 == .timeSynchronizationRequired }) {
-            
-        }
+
+        if status.status.contains(where: { $0 == .timeSynchronizationRequired }) {}
 
         let notifications = status.status.compactMap(\.notification)
         if !notifications.isEmpty {
             NotificationHelper.sendCgmAlert(alerts: notifications)
         }
+    }
+
+    func cleanup() {
+        state.deviceName = nil
+        notifyStateDidChange()
+
+        bluetooth.stopScan()
+        bluetooth.disconnect()
+    }
+
+    public func delete(completion: @escaping () -> Void) {
+        cleanup()
+        notifyDelegateOfDeletion(completion: completion)
     }
 }
 

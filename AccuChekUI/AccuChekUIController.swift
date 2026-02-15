@@ -8,6 +8,7 @@ enum AccuChekScreen {
     case auth
     case pairing
     case settings
+    case calibration
 }
 
 class AccuChekUIController: UINavigationController, CGMManagerOnboarding, CompletionNotifying, UINavigationControllerDelegate {
@@ -74,20 +75,9 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
     private func viewControllerForScreen(_ screen: AccuChekScreen) -> UIViewController {
         switch screen {
         case .onboarding:
-            let view = OnboardingView(nextStep: {
-//                guard let cgmManager = self.cgmManager, let expiresAt = cgmManager.state.expiresAt else {
-//                    self.navigateTo(.auth)
-//                    return
-//                }
-//
-//                if cgmManager.state.accessToken == nil || expiresAt < Date.now {
-//                    self.navigateTo(.auth)
-//                    return
-//                }
-
-                self.navigateTo(.pairing)
-            })
+            let view = OnboardingView(nextStep: { self.navigateTo(.pairing) })
             return hostingController(rootView: view)
+
         case .auth:
             let viewModel = WebViewModel(nextStep: { response in
                 if let cgmManager = self.cgmManager, let response = response {
@@ -100,6 +90,7 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
                 self.resetNavigationTo([.pairing])
             })
             return hostingController(rootView: AuthView(viewModel: viewModel))
+
         case .pairing:
             let nextStep = {
                 if let cgmManager = self.cgmManager {
@@ -113,7 +104,11 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
 
             let viewModel = PairingViewModel(cgmManager, nextStep: nextStep)
             return hostingController(rootView: PairingView(viewModel: viewModel))
+
         case .settings:
+            let doCalibration = {
+                self.navigateTo(.calibration)
+            }
             let deleteCGM = {
                 guard let cgmManager = self.cgmManager else {
                     self.completionDelegate?.completionNotifyingDidComplete(self)
@@ -127,8 +122,12 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
                 }
             }
 
-            let viewModel = SettingsViewModel(cgmManager, deleteCGM: deleteCGM)
+            let viewModel = SettingsViewModel(cgmManager, doCalibration: doCalibration, deleteCGM: deleteCGM)
             return hostingController(rootView: SettingsView(viewModel: viewModel))
+
+        case .calibration:
+            let viewModel = CalibrationViewModel(cgmManager: cgmManager, displayGlucosePreference.unit, goBack)
+            return hostingController(rootView: CalibrationView(viewModel: viewModel))
         }
     }
 
@@ -155,6 +154,15 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
         viewController.isModalInPresentation = false
         pushViewController(viewController, animated: true)
         viewController.view.layoutSubviews()
+    }
+
+    private func goBack() {
+        guard screenStack.count > 1 else {
+            return
+        }
+
+        _ = screenStack.popLast()
+        popViewController(animated: true)
     }
 
     func resetNavigationTo(_ screens: [AccuChekScreen]) {

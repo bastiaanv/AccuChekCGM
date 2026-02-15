@@ -26,6 +26,24 @@ struct SettingsView: View {
         )
     }
 
+    var pairNewCGMActionSheet: ActionSheet {
+        ActionSheet(
+            title: Text(LocalizedString("Pair new Sensor", comment: "title repair sensor action sheet")),
+            message: Text(LocalizedString(
+                "Are you sure you want to pair a new Sensor? You cannot reverse this action.",
+                comment: "message repair sensor action sheet"
+            )),
+            buttons: [
+                .destructive(
+                    Text(LocalizedString("Confirm", comment: "Confirmation label"))
+                ) {
+                    // viewModel.deleteCGM()
+                },
+                .cancel()
+            ]
+        )
+    }
+
     var body: some View {
         List {
             Section {
@@ -40,15 +58,7 @@ struct SettingsView: View {
                         Spacer()
                     }
 
-                    HStack(alignment: .lastTextBaseline) {
-                        Text(LocalizedString("Sensor expires in:", comment: "expiration timer"))
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        sensorExpirationTimer
-                    }
-                    SwiftUI.ProgressView(value: viewModel.sensorAgeProcess)
-                        .scaleEffect(x: 1, y: 4, anchor: .center)
-                        .padding(.top, 7)
+                    sensorStateInformation
                 }
 
                 HStack(alignment: .top) {
@@ -73,7 +83,7 @@ struct SettingsView: View {
                             }
                             Spacer()
                             if notification.type == .calibrationRequired || notification.type == .calibrationRecommended {
-                                Button(action: {}) {
+                                Button(action: viewModel.doCalibration) {
                                     Text(LocalizedString("Start", comment: "calibration start button"))
                                 }
                             }
@@ -96,12 +106,36 @@ struct SettingsView: View {
             }
 
             Section {
+                SectionItem(
+                    title: LocalizedString("Serial Number", comment: "CGM name"),
+                    value: viewModel.deviceName
+                )
+                SectionItem(
+                    title: LocalizedString("Started at", comment: "cgm started"),
+                    value: viewModel.sensorStartedAt
+                )
+                SectionItem(
+                    title: LocalizedString("Ends at", comment: "cgm ends"),
+                    value: viewModel.sensorEndsAt
+                )
+            } header: {
+                Text(LocalizedString("Sensor information", comment: "current sensor"))
+            }
+
+            Section {
                 Button(LocalizedString("Share Accu-chek logs", comment: "share logs")) {
                     viewModel.isSharePresented = true
                 }
                 .sheet(isPresented: $viewModel.isSharePresented, onDismiss: {}, content: {
                     ActivityViewController(activityItems: viewModel.getLogs())
                 })
+
+                Button(LocalizedString("Pair new Sensor", comment: "pair new sensor")) {
+                    viewModel.showingRepairConfirmation = true
+                }
+                .actionSheet(isPresented: $viewModel.showingRepairConfirmation) {
+                    pairNewCGMActionSheet
+                }
 
                 Button(action: {
                     viewModel.showingDeleteConfirmation = true
@@ -160,13 +194,13 @@ struct SettingsView: View {
                         .font(.system(size: 28))
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
-                    if viewModel.sensorAgeDays == 1 {
-                        Text(LocalizedString("day", comment: "age in day"))
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text(LocalizedString("days", comment: "age in days"))
-                            .foregroundColor(.secondary)
-                    }
+
+                    Text(
+                        viewModel.sensorAgeDays == 1 ?
+                            LocalizedString("day", comment: "age in day") :
+                            LocalizedString("days", comment: "age in days")
+                    )
+                    .foregroundColor(.secondary)
                 }
             }
             if viewModel.sensorAgeHours > 0 {
@@ -175,13 +209,13 @@ struct SettingsView: View {
                         .font(.system(size: 28))
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
-                    if viewModel.sensorAgeDays == 1 {
-                        Text(LocalizedString("hour", comment: "age in hour"))
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text(LocalizedString("hours", comment: "age in hours"))
-                            .foregroundColor(.secondary)
-                    }
+
+                    Text(
+                        viewModel.sensorAgeHours == 1 ?
+                            LocalizedString("hour", comment: "age in hour") :
+                            LocalizedString("hours", comment: "age in hours")
+                    )
+                    .foregroundColor(.secondary)
                 }
             }
             if viewModel.sensorAgeDays == 0 {
@@ -190,15 +224,61 @@ struct SettingsView: View {
                         .font(.system(size: 28))
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
-                    if viewModel.sensorAgeDays == 1 {
-                        Text(LocalizedString("minute", comment: "age in minute"))
-                            .foregroundColor(.secondary)
-                    } else {
-                        Text(LocalizedString("minutes", comment: "age in minutes"))
-                            .foregroundColor(.secondary)
-                    }
+
+                    Text(
+                        viewModel.sensorAgeMinutes == 1 ?
+                            LocalizedString("minute", comment: "age in minute") :
+                            LocalizedString("minutes", comment: "age in minutes")
+                    )
+                    .foregroundColor(.secondary)
                 }
             }
+        }
+    }
+
+    @ViewBuilder private var sensorStateInformation: some View {
+        switch viewModel.cgmState {
+        case .warmingup:
+            HStack(alignment: .lastTextBaseline) {
+                Text(LocalizedString("Warming up:", comment: "sensor warming up label"))
+                    .foregroundColor(.secondary)
+                Spacer()
+                Group {
+                    Text("\(viewModel.sensorWarmupMinutes, specifier: "%.0f")")
+                        .font(.system(size: 28))
+                        .fontWeight(.heavy)
+                        .foregroundColor(.primary)
+
+                    Text(
+                        viewModel.sensorWarmupMinutes == 1 ?
+                            LocalizedString("minute remaining", comment: "remaining in minute") :
+                            LocalizedString("minutes remaining", comment: "remaining in minutes")
+                    )
+                    .foregroundColor(.secondary)
+                }
+            }
+            SwiftUI.ProgressView(value: viewModel.sensorWarmupProgress)
+                .scaleEffect(x: 1, y: 4, anchor: .center)
+                .padding(.top, 7)
+        case .active:
+            HStack(alignment: .lastTextBaseline) {
+                Text(LocalizedString("Sensor expires in:", comment: "expiration timer"))
+                    .foregroundColor(.secondary)
+                Spacer()
+                sensorExpirationTimer
+            }
+            SwiftUI.ProgressView(value: viewModel.sensorAgeProcess)
+                .scaleEffect(x: 1, y: 4, anchor: .center)
+                .padding(.top, 7)
+        case .expired:
+            HStack(alignment: .lastTextBaseline) {
+                Text(LocalizedString("Sensor expired!", comment: "expired"))
+                    .foregroundColor(guidanceColors.critical)
+            }
+            SwiftUI.ProgressView(value: 1)
+                .scaleEffect(x: 1, y: 4, anchor: .center)
+                .padding(.top, 7)
+                .foregroundStyle(guidanceColors.critical)
         }
     }
 }

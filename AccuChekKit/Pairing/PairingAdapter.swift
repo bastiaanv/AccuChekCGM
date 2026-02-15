@@ -65,7 +65,7 @@ extension PairingAdapter {
         var response = SensorStatus(data: statusData)
         if response.status.contains(where: { $0 == .timeSynchronizationRequired }) {
             setStartTime()
-            
+
             guard let statusData = peripheralManager.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS)
             else {
                 logger.error("Failed to read sensorStatus")
@@ -73,11 +73,11 @@ extension PairingAdapter {
             }
             response = SensorStatus(data: statusData)
         }
-        
+
         cgmManager.notifyNewStatus(response)
         logger.info(response.describe)
     }
-    
+
     private func setStartTime() {
         let packet = SetStartTimePacket(date: Date.now)
         guard peripheralManager.write(packet: packet, service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_SESSION_START)

@@ -91,7 +91,7 @@ enum SessionTimeZone: UInt8 {
         default: return nil
         }
     }
-    
+
     static func fromTimeZone(timeZone: TimeZone) -> SessionTimeZone? {
         let index = TimeInterval(seconds: Double(timeZone.secondsFromGMT())) / .minutes(15)
         return SessionTimeZone(rawValue: UInt8(bitPattern: Int8(index)))

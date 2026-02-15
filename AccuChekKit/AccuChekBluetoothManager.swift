@@ -62,6 +62,18 @@ class AccuChekBluetoothManager: NSObject {
         logger.info("Connecting to \(peripheral.name ?? "Unknown")...")
     }
 
+    func disconnect() {
+        guard let manager, let peripheral else {
+            logger.error("No CBCentralManager or peripheral available...")
+            return
+        }
+
+        manager.cancelPeripheralConnection(peripheral)
+
+        self.peripheral = nil
+        peripheralManager = nil
+    }
+
     private func restoreConnection() {
         guard let deviceName = cgmManager?.state.deviceName else {
             logger.error("Cannot start ensureConnected - No device name available...")
@@ -166,9 +178,17 @@ extension AccuChekBluetoothManager: CBCentralManagerDelegate {
             logger.warning("\(peripheral.name ?? "") disconnected")
         }
 
-        if let cgmManager = cgmManager {
-            cgmManager.state.isConnected = false
-            cgmManager.notifyStateDidChange()
+        guard let cgmManager else {
+            logger.error("No CGMManager...")
+            return
+        }
+
+        cgmManager.state.isConnected = false
+        cgmManager.notifyStateDidChange()
+
+        if cgmManager.state.deviceName == nil {
+            logger.warning("Prevent auto-reconnect -> unpaired device...")
+            return
         }
 
         connect(to: peripheral) { error in

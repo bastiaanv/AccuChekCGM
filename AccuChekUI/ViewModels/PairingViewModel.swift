@@ -15,7 +15,7 @@ enum PairingState {
             return LocalizedString("Connecting with your Accu Chek CGM!", comment: "connecting")
         }
     }
-    
+
     var desciption: String {
         switch self {
         case .scanning:

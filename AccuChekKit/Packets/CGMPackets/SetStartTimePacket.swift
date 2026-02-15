@@ -1,17 +1,17 @@
 import CoreBluetooth
 import Foundation
 
-class SetStartTimePacket : AccuChekBasePacket {
+class SetStartTimePacket: AccuChekBasePacket {
     var describe: String {
         "[SetStartTimePacket] receivedResponse=\(receivedResponse)"
     }
-    
+
     var characteristics: [CBUUID] {
         [CBUUID.CGM_SESSION_START]
     }
-    
+
     var receivedResponse: Bool = false
-    
+
     private let logger = AccuChekLogger(category: "SetStartTimePacket")
     let date: Date
     init(date: Date) {
@@ -31,13 +31,13 @@ class SetStartTimePacket : AccuChekBasePacket {
             logger.error("Failed to parse date components...")
             return Data()
         }
-        
+
         let currentTimezone = TimeZone.current
         guard let sessionTimezone = SessionTimeZone.fromTimeZone(timeZone: currentTimezone) else {
             logger.error("Failed to parse timezone...")
             return Data()
         }
-        
+
         let data = Data([
             UInt8(year % 256),
             UInt8(year / 256),
@@ -49,14 +49,14 @@ class SetStartTimePacket : AccuChekBasePacket {
             sessionTimezone.rawValue,
             DstOffset.standardTime.rawValue
         ])
-        
+
         return data.appendingCrc()
     }
-    
-    func parseResponse(data: Data) {
+
+    func parseResponse(data _: Data) {
         receivedResponse = true
     }
-    
+
     func isComplete() -> Bool {
         receivedResponse
     }
