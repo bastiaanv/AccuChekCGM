@@ -4,9 +4,8 @@ import SwiftUI
 
 class CalibrationViewModel: ObservableObject {
     @Published var glucose: UInt16
-    @Published var time = Date.now
     @Published var isLoading = false
-    @Published var error = ""
+    @Published var isError = false
 
     let allowedGlucoseValuesMgDl = Array(UInt16(60) ... UInt16(400))
     let allowedGlucoseValuesMmolL = Array(UInt16(33) ... UInt16(220))
@@ -28,27 +27,25 @@ class CalibrationViewModel: ObservableObject {
             return
         }
 
-        error = ""
+        isError = false
         isLoading = true
-
-        var glucose = glucose
-        if unit == .millimolesPerLiter {
-            let mgdl = HKQuantity(unit: unit, doubleValue: Double(glucose) / 10).doubleValue(for: .milligramsPerDeciliter)
-            glucose = UInt16(mgdl)
-        }
-
-        Task {
-            do {
-                await MainActor.run {
-                    self.isLoading = false
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            
+            var glucose = glucose
+            if unit == .millimolesPerLiter {
+                let mgdl = HKQuantity(unit: unit, doubleValue: Double(glucose) / 10).doubleValue(for: .milligramsPerDeciliter)
+                glucose = UInt16(mgdl)
+            }
+            
+            let success = cgmManager.calibrateSensor(glucose: glucose)
+            DispatchQueue.main.async {
+                self.isLoading = false
+                if success {
                     self.done()
-                }
-            } catch {
-                logger.error("Error during calibration: \(error)")
-
-                await MainActor.run {
-                    self.error = error.localizedDescription
-                    self.isLoading = false
+                } else {
+                    self.isError = true
                 }
             }
         }

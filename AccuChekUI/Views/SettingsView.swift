@@ -86,6 +86,7 @@ struct SettingsView: View {
                                 Button(action: viewModel.doCalibration) {
                                     Text(LocalizedString("Start", comment: "calibration start button"))
                                 }
+                                .disabled(!viewModel.connected)
                             }
                         }
                     }

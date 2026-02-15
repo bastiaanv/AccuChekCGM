@@ -16,12 +16,6 @@ struct CalibrationView: View {
         VStack {
             List {
                 Section {
-                    DatePicker(
-                        LocalizedString("Time", comment: "label time"),
-                        selection: $viewModel.time,
-                        displayedComponents: .hourAndMinute
-                    )
-
                     Button(action: { withAnimation { isEdittingGlucose.toggle() } }) {
                         HStack(alignment: .bottom) {
                             Text(LocalizedString("Glucose level", comment: "label glucose"))
@@ -46,16 +40,20 @@ struct CalibrationView: View {
             .listStyle(InsetGroupedListStyle())
 
             Spacer()
-            if !viewModel.error.isEmpty {
-                Text(viewModel.error)
+            if viewModel.isError {
+                Text(LocalizedString("Calibration failed. Consult logs to find why", comment: "calibration error"))
                     .foregroundStyle(.red)
             }
             Button(action: viewModel.calibrate) {
-                Text(LocalizedString("Calibrate Sensor", comment: "calibration"))
+                if viewModel.isLoading {
+                    ActivityIndicator(isAnimating: .constant(true), style: .medium)
+                } else {
+                    Text(LocalizedString("Calibrate Sensor", comment: "calibration"))
+                }
             }
             .buttonStyle(ActionButtonStyle())
             .padding([.bottom, .horizontal])
-            .disabled(!viewModel.isLoading)
+            .disabled(viewModel.isLoading)
         }
         .navigationTitle(LocalizedString("Calibration", comment: "Calibation header"))
     }

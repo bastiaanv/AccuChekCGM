@@ -12,10 +12,15 @@ protocol PairingAdapter {
 extension PairingAdapter {
     func configureSensor() {
         getSensorStatus()
-        getSensorStartTime()
+
+        let startTime = getSensorStartTime()
+        guard let startTime, startTime.addingTimeInterval(.hours(1)) < Date.now else {
+            logger.warning("Do not fetch glucose measurement during warmup or without start time")
+            return
+        }
 
         guard let currentReading = getCurrentMeasurement() else {
-            logger.error("Failed to read CGM start time")
+            logger.warning("Failed to read CGM measurements")
             return
         }
 
@@ -24,11 +29,11 @@ extension PairingAdapter {
         }
     }
 
-    private func getSensorStartTime() {
+    private func getSensorStartTime() -> Date? {
         guard let data = peripheralManager.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_SESSION_START)
         else {
             logger.error("Failed to read CGM start time")
-            return
+            return nil
         }
 
         let response = CgmStartTime(data)
@@ -36,6 +41,8 @@ extension PairingAdapter {
 
         cgmManager.state.cgmStartTime = response.start
         cgmManager.notifyStateDidChange()
+        
+        return response.start
     }
 
     private func getCurrentMeasurement() -> [CgmMeasurement]? {
