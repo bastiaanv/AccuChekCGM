@@ -1,9 +1,10 @@
 name: Tolgee Upload translations
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "master" ]
-    paths: ["AccuChekUI/Localizable.xcstring"]
+    paths: ["AccuChekUI/Localizable.xcstrings"]
 
 jobs:
   translations:
