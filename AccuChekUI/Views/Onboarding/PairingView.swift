@@ -35,7 +35,10 @@ struct PairingView: View {
             LocalizedString("Found unsupported Accu Chek CGM...", comment: "unsupported device title"),
             isPresented: $viewModel.showUnsupportedDeviceAlert,
             presenting: String(
-                format: LocalizedString("This Accu chek Sensor is using advanced encryption which is not supported yet... %@", comment: "unsupported device message"),
+                format: LocalizedString(
+                    "This Accu chek Sensor is using advanced encryption which is not supported yet... %@",
+                    comment: "unsupported device message"
+                ),
                 viewModel.unsupportedDevice?.deviceName ?? "EMPTY"
             ),
             actions: { _ in
