@@ -29,16 +29,16 @@ class CalibrationViewModel: ObservableObject {
 
         isError = false
         isLoading = true
-        
+
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
-            
+
             var glucose = glucose
             if unit == .millimolesPerLiter {
                 let mgdl = HKQuantity(unit: unit, doubleValue: Double(glucose) / 10).doubleValue(for: .milligramsPerDeciliter)
                 glucose = UInt16(mgdl)
             }
-            
+
             let success = cgmManager.calibrateSensor(glucose: glucose)
             DispatchQueue.main.async {
                 self.isLoading = false

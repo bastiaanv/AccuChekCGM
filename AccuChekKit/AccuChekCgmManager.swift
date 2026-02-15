@@ -1,5 +1,5 @@
-import HealthKit
 import CoreBluetooth
+import HealthKit
 import LoopKit
 
 protocol StateObserver: AnyObject {
@@ -110,29 +110,29 @@ public class AccuChekCgmManager: CGMManager {
             ))
         }
     }
-    
+
     internal func calibrateSensor(glucose: UInt16) -> Bool {
         guard let startTime = state.cgmStartTime else {
             logger.error("No start time...")
             return false
         }
-        
+
         let packet = CalibratePacket(glucoseInMgDl: glucose, cgmStartTime: startTime)
         if !bluetooth.write(packet: packet, service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_CONTROL_POINT) {
             logger.error("Failed to write calibration to sensor...")
             return false
         }
-        
+
         Thread.sleep(forTimeInterval: .seconds(2))
-        
+
         guard let cgmStatus = bluetooth.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
             logger.error("Failed to read sensor status")
             return false
         }
-        
+
         let response = SensorStatus(data: cgmStatus)
         notifyNewStatus(response)
-        
+
         return true
     }
 

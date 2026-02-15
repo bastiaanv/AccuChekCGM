@@ -23,9 +23,7 @@ class SettingsViewModel: ObservableObject {
     @Published var sensorAgeMinutes: Double = 0
     @Published var sensorWarmupProgress: Double = 0
     @Published var sensorWarmupMinutes: Double = 0
-    @Published var notifications: [NotificationContent] = [
-        SensorStatusEnum.calibrationRequired.notification!
-    ]
+    @Published var notifications: [NotificationContent] = []
 
     @Published var isSharePresented = false
     @Published var showingDeleteConfirmation = false
@@ -82,7 +80,7 @@ extension SettingsViewModel: StateObserver {
     func stateDidUpdate(_ state: AccuChekState) {
         connected = state.isConnected
         deviceName = state.deviceName ?? ""
-//        notifications = state.cgmStatus.compactMap(\.notification)
+        notifications = state.cgmStatus.compactMap(\.notification)
 
         if let glucose = state.lastGlucoseValue {
             lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose))

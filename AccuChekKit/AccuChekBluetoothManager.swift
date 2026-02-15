@@ -73,22 +73,22 @@ class AccuChekBluetoothManager: NSObject {
         self.peripheral = nil
         peripheralManager = nil
     }
-    
+
     func read(service: CBUUID, characteristic: CBUUID) -> Data? {
         guard let peripheralManager else {
             logger.error("No peripheralManager...")
             return nil
         }
-        
+
         return peripheralManager.read(service: service, characteristic: characteristic)
     }
-    
+
     func write(packet: AccuChekBasePacket, service: CBUUID, characteristic: CBUUID) -> Bool {
         guard let peripheralManager else {
             logger.error("No peripheralManager...")
             return false
         }
-        
+
         return peripheralManager.write(packet: packet, service: service, characteristic: characteristic)
     }
 

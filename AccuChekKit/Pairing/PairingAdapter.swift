@@ -41,7 +41,7 @@ extension PairingAdapter {
 
         cgmManager.state.cgmStartTime = response.start
         cgmManager.notifyStateDidChange()
-        
+
         return response.start
     }
 
