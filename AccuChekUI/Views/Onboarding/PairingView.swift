@@ -13,9 +13,12 @@ struct PairingView: View {
             ActivityIndicator(isAnimating: .constant(true), style: .medium)
         }
         .alert(
-            LocalizedString("Found Accu Chek CGM!", comment: "found device message"),
+            LocalizedString("Found an Accu Chek CGM!", comment: "found device title"),
             isPresented: $viewModel.showConfirmationAlert,
-            presenting: "Is this the correct serial number? \(viewModel.foundDeviceLast?.deviceName ?? "EMPTY")",
+            presenting: String(
+                format: LocalizedString("Is this the correct serial number? %@", comment: "found device message"),
+                viewModel.foundDeviceLast?.deviceName ?? "EMPTY"
+            ),
             actions: { _ in
                 Button(LocalizedString("No", comment: "label no"), action: {
                     viewModel.startScanning()
@@ -24,6 +27,20 @@ struct PairingView: View {
                     if let device = viewModel.foundDeviceLast {
                         viewModel.connect(result: device)
                     }
+                })
+            },
+            message: { detail in Text(detail) }
+        )
+        .alert(
+            LocalizedString("Found unsupported Accu Chek CGM...", comment: "unsupported device title"),
+            isPresented: $viewModel.showUnsupportedDeviceAlert,
+            presenting: String(
+                format: LocalizedString("This Accu chek Sensor is using advanced encryption which is not supported yet... %@", comment: "unsupported device message"),
+                viewModel.unsupportedDevice?.deviceName ?? "EMPTY"
+            ),
+            actions: { _ in
+                Button(LocalizedString("Understood", comment: "label undestood"), action: {
+                    viewModel.startScanning()
                 })
             },
             message: { detail in Text(detail) }

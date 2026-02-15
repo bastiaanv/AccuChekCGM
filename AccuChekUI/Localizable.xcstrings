@@ -1803,6 +1803,30 @@
         }
       }
     },
+    "Found an Accu Chek CGM!" : {
+      "comment" : "found device title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found an Accu Chek CGM!"
+          }
+        }
+      }
+    },
+    "Found unsupported Accu Chek CGM..." : {
+      "comment" : "unsupported device title",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found unsupported Accu Chek CGM..."
+          }
+        }
+      }
+    },
     "Glucose" : {
       "comment" : "current glucose",
       "extractionState" : "manual",
@@ -2631,6 +2655,18 @@
         }
       }
     },
+    "Is this the correct serial number? %@" : {
+      "comment" : "found device message",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Is this the correct serial number? %@"
+          }
+        }
+      }
+    },
     "Last measurement" : {
       "comment" : "current reading",
       "extractionState" : "manual",
@@ -3317,6 +3353,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "剩余时间"
+          }
+        }
+      }
+    },
+    "No" : {
+      "comment" : "label no",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No"
           }
         }
       }
@@ -5667,6 +5715,18 @@
         }
       }
     },
+    "This Accu chek Sensor is using advanced encryption which is not supported yet... %@" : {
+      "comment" : "unsupported device message",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Accu chek Sensor is using advanced encryption which is not supported yet... %@"
+          }
+        }
+      }
+    },
     "Time" : {
       "comment" : "current glucose date",
       "extractionState" : "manual",
@@ -5801,6 +5861,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "时间"
+          }
+        }
+      }
+    },
+    "Understood" : {
+      "comment" : "label understood",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Understood"
           }
         }
       }
@@ -6215,6 +6287,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "点击 \"继续 \"时，您将扫描您的 Accu chek CGM。确保您已准备好与手机配对的 PIN 码！"
+          }
+        }
+      }
+    },
+    "Yes" : {
+      "comment" : "label yes",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes"
           }
         }
       }
