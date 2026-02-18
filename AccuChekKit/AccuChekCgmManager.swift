@@ -159,7 +159,9 @@ public class AccuChekCgmManager: CGMManager {
     }
 
     public func delete(completion: @escaping () -> Void) {
+        logger.info("Delete action triggered")
         cleanup()
+
         notifyDelegateOfDeletion(completion: completion)
     }
 }
