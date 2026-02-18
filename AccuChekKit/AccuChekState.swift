@@ -27,6 +27,7 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var isConnected: Bool
     public var mtu: UInt16 = 0
     public var deviceName: String?
+    public var previousDeviceName: String?
     public var serialNumber: String?
     public var certificate: Certificate?
 

@@ -37,7 +37,7 @@ struct SettingsView: View {
                 .destructive(
                     Text(LocalizedString("Confirm", comment: "Confirmation label"))
                 ) {
-                    // viewModel.deleteCGM()
+                    viewModel.pairNewCGM()
                 },
                 .cancel()
             ]

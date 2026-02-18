@@ -109,6 +109,9 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
             let doCalibration = {
                 self.navigateTo(.calibration)
             }
+            let doPairing = {
+                self.navigateTo(.pairing)
+            }
             let deleteCGM = {
                 guard let cgmManager = self.cgmManager else {
                     self.completionDelegate?.completionNotifyingDidComplete(self)
@@ -122,7 +125,7 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
                 }
             }
 
-            let viewModel = SettingsViewModel(cgmManager, doCalibration: doCalibration, deleteCGM: deleteCGM)
+            let viewModel = SettingsViewModel(cgmManager, doCalibration: doCalibration, doPairing: doPairing, deleteCGM: deleteCGM)
             return hostingController(rootView: SettingsView(viewModel: viewModel))
 
         case .calibration:

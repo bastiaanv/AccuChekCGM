@@ -150,6 +150,7 @@ public class AccuChekCgmManager: CGMManager {
     }
 
     internal func cleanup() {
+        state.previousDeviceName = state.deviceName
         state.deviceName = nil
         notifyStateDidChange()
 

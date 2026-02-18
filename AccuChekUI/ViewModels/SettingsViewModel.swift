@@ -45,10 +45,12 @@ class SettingsViewModel: ObservableObject {
     private let logger = AccuChekLogger(category: "SettingsViewModel")
     private let cgmManager: AccuChekCgmManager?
     let doCalibration: () -> Void
+    private let doPairing: () -> Void
     let deleteCGM: () -> Void
-    init(_ cgmManager: AccuChekCgmManager?, doCalibration: @escaping () -> Void, deleteCGM: @escaping () -> Void) {
+    init(_ cgmManager: AccuChekCgmManager?, doCalibration: @escaping () -> Void, doPairing: @escaping () -> Void, deleteCGM: @escaping () -> Void) {
         self.cgmManager = cgmManager
         self.doCalibration = doCalibration
+        self.doPairing = doPairing
         self.deleteCGM = deleteCGM
 
         guard let cgmManager = cgmManager else {
@@ -73,6 +75,7 @@ class SettingsViewModel: ObservableObject {
         }
 
         cgmManager.cleanup()
+        doPairing()
     }
 }
 
