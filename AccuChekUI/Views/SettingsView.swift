@@ -37,7 +37,7 @@ struct SettingsView: View {
                 .destructive(
                     Text(LocalizedString("Confirm", comment: "Confirmation label"))
                 ) {
-                    // viewModel.deleteCGM()
+                    viewModel.pairNewCGM()
                 },
                 .cancel()
             ]
@@ -226,12 +226,8 @@ struct SettingsView: View {
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
 
-                    Text(
-                        viewModel.sensorAgeMinutes == 1 ?
-                            LocalizedString("minute", comment: "age in minute") :
-                            LocalizedString("minutes", comment: "age in minutes")
-                    )
-                    .foregroundColor(.secondary)
+                    Text(LocalizedString("min", comment: "age in minute"))
+                        .foregroundColor(.secondary)
                 }
             }
         }

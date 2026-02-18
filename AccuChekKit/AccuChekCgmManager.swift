@@ -150,6 +150,7 @@ public class AccuChekCgmManager: CGMManager {
     }
 
     internal func cleanup() {
+        state.previousDeviceName = state.deviceName
         state.deviceName = nil
         notifyStateDidChange()
 
@@ -158,7 +159,9 @@ public class AccuChekCgmManager: CGMManager {
     }
 
     public func delete(completion: @escaping () -> Void) {
+        logger.info("Delete action triggered")
         cleanup()
+
         notifyDelegateOfDeletion(completion: completion)
     }
 }

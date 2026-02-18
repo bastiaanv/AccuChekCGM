@@ -30,7 +30,9 @@ class PairingViewModel: ObservableObject {
     @Published var state: PairingState = .scanning
     @Published var foundDevices: [ScanResult] = []
     @Published var foundDeviceLast: ScanResult? = nil
+    @Published var unsupportedDevice: ScanResult? = nil
     @Published var showConfirmationAlert = false
+    @Published var showUnsupportedDeviceAlert = false
 
     private let logger = AccuChekLogger(category: "PairingViewModel")
 
@@ -86,10 +88,21 @@ class PairingViewModel: ObservableObject {
             return
         }
 
-        let previousDeviceName = cgmManager.state.deviceName
+        let previousDeviceName = cgmManager.state.previousDeviceName
         cgmManager.bluetooth.startScan { result in
             if result.deviceName == previousDeviceName {
                 self.logger.warning("Found previous CGM while scanning: \(result.deviceName)")
+                return
+            }
+
+            if result.hasAcsSupport {
+                // Found unsupported device...
+                cgmManager.bluetooth.stopScan()
+                DispatchQueue.main.async {
+                    self.foundDevices.append(result)
+                    self.unsupportedDevice = result
+                    self.showUnsupportedDeviceAlert = true
+                }
                 return
             }
 
@@ -108,6 +121,8 @@ class PairingViewModel: ObservableObject {
             logger.error("No CGM manager to start scanning")
             return
         }
+
+        state = .connecting
 
         cgmManager.state.deviceName = result.deviceName
         cgmManager.notifyStateDidChange()
