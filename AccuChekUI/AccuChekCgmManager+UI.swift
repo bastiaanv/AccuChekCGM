@@ -16,7 +16,7 @@ extension AccuChekCgmManager: CGMManagerUI {
         )
         return .userInteractionRequired(vc)
     }
-    
+
     public func settingsViewController(
         bluetoothProvider _: any LoopKit.BluetoothProvider,
         displayGlucosePreference: LoopKitUI.DisplayGlucosePreference,
@@ -47,7 +47,7 @@ extension AccuChekCgmManager: CGMManagerUI {
         guard let expiresAt = state.expiresAt, let activatedAt = state.cgmStartTime else {
             return nil
         }
-        
+
         if expiresAt.addingTimeInterval(.days(-1)) <= Date.now {
             // Show warning in last 24h
             return AccuChekKitLifecycleProgress(
@@ -55,7 +55,7 @@ extension AccuChekCgmManager: CGMManagerUI {
                 progressState: .warning
             )
         }
-        
+
         if expiresAt.addingTimeInterval(.days(-3)) <= Date.now {
             // Show progress in last 72h
             return AccuChekKitLifecycleProgress(
@@ -63,19 +63,19 @@ extension AccuChekCgmManager: CGMManagerUI {
                 progressState: .normalCGM
             )
         }
-        
+
         return nil
     }
 
     public var cgmStatusBadge: (any LoopKitUI.DeviceStatusBadge)? {
         // Show exclamation mark for every notification (might be sensor failure or calibation required)
-        if !state.cgmStatus.compactMap({ $0.notification }).isEmpty {
+        if !state.cgmStatus.compactMap(\.notification).isEmpty {
             return AccuChekDeviceStatusBadge()
         }
-        
+
         return nil
     }
-    
+
     private func getCgmProgress(activatedAt: Date) -> Double {
         let age = activatedAt.timeIntervalSinceNow * -1
         return age / .days(14)

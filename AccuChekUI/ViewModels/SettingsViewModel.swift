@@ -47,7 +47,12 @@ class SettingsViewModel: ObservableObject {
     let doCalibration: () -> Void
     private let doPairing: () -> Void
     let deleteCGM: () -> Void
-    init(_ cgmManager: AccuChekCgmManager?, doCalibration: @escaping () -> Void, doPairing: @escaping () -> Void, deleteCGM: @escaping () -> Void) {
+    init(
+        _ cgmManager: AccuChekCgmManager?,
+        doCalibration: @escaping () -> Void,
+        doPairing: @escaping () -> Void,
+        deleteCGM: @escaping () -> Void
+    ) {
         self.cgmManager = cgmManager
         self.doCalibration = doCalibration
         self.doPairing = doPairing
@@ -116,6 +121,7 @@ extension SettingsViewModel: StateObserver {
 
             sensorAgeProcess = min(cgmStartTime.timeIntervalSinceNow * -1 / .days(14), 1)
 
+            logger.info("Endtime: \(cgmEndTime)")
             let sensorAge = cgmEndTime.timeIntervalSinceNow
             sensorAgeDays = max(floor(sensorAge / .days(1)), 0)
             sensorAgeHours = max(sensorAge.truncatingRemainder(dividingBy: .days(1)) / .hours(1), 0)

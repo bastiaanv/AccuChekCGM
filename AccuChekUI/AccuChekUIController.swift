@@ -125,7 +125,12 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
                 }
             }
 
-            let viewModel = SettingsViewModel(cgmManager, doCalibration: doCalibration, doPairing: doPairing, deleteCGM: deleteCGM)
+            let viewModel = SettingsViewModel(
+                cgmManager,
+                doCalibration: doCalibration,
+                doPairing: doPairing,
+                deleteCGM: deleteCGM
+            )
             return hostingController(rootView: SettingsView(viewModel: viewModel))
 
         case .calibration:

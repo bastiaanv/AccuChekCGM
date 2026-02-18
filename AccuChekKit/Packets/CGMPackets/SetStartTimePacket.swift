@@ -32,12 +32,6 @@ class SetStartTimePacket: AccuChekBasePacket {
             return Data()
         }
 
-        let currentTimezone = TimeZone.current
-        guard let sessionTimezone = SessionTimeZone.fromTimeZone(timeZone: currentTimezone) else {
-            logger.error("Failed to parse timezone...")
-            return Data()
-        }
-
         let data = Data([
             UInt8(year % 256),
             UInt8(year / 256),
@@ -46,7 +40,7 @@ class SetStartTimePacket: AccuChekBasePacket {
             UInt8(hour),
             UInt8(minute),
             UInt8(second),
-            sessionTimezone.rawValue,
+            0, // Always use UTC as time
             DstOffset.standardTime.rawValue
         ])
 
