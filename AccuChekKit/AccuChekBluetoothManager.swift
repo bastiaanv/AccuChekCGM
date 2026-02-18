@@ -31,7 +31,7 @@ class AccuChekBluetoothManager: NSObject {
         }
 
         scanCompletion = completion
-        manager.scanForPeripherals(withServices: [CBUUID.CGM_SERVICE])
+        manager.scanForPeripherals(withServices: [CBUUID.CGM_SERVICE], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
         logger.info("Started scan!")
     }
 

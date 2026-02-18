@@ -88,7 +88,7 @@ class PairingViewModel: ObservableObject {
 
         let previousDeviceName = cgmManager.state.deviceName
         cgmManager.bluetooth.startScan { result in
-            if result.deviceName != previousDeviceName {
+            if result.deviceName == previousDeviceName {
                 self.logger.warning("Found previous CGM while scanning: \(result.deviceName)")
                 return
             }
