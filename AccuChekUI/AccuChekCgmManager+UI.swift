@@ -40,12 +40,13 @@ extension AccuChekCgmManager: CGMManagerUI {
     }
 
     public var cgmStatusHighlight: (any LoopKit.DeviceStatusHighlight)? {
-        let cgmNotifications = state.cgmStatus.compactMap { $0.notification }
+        let cgmNotifications = state.cgmStatus.compactMap(\.notification)
         if let notification = cgmNotifications.first {
             return AccuChekDeviceStatusHighlight(
                 localizedMessage: notification.content,
                 imageName: "exclamationmark.triangle",
-                state: notification.type == .calibrationRequired || notification.type == .calibrationRecommended ? .warning : .critical
+                state: notification.type == .calibrationRequired || notification
+                    .type == .calibrationRecommended ? .warning : .critical
             )
         }
 
