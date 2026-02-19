@@ -36,7 +36,7 @@ enum SensorStatusEnum: UInt8 {
     case sessionStopped = 0
     case deviceBatteryLow = 1
     case sensorTypeIncorrectForDevice = 2
-    case sensorMalfunction = 3
+    case sensorWarmingup = 3
     case deviceSpecificAlert = 4
     case generalDeviceFaultOccuredInSensor = 5
     case timeSynchronizationRequired = 8
@@ -71,8 +71,7 @@ enum SensorStatusEnum: UInt8 {
                 title: LocalizedString("Sensor battery is low", comment: "title battery low"),
                 content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
             )
-        case .generalDeviceFaultOccuredInSensor,
-             .sensorMalfunction:
+        case .generalDeviceFaultOccuredInSensor:
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "sensorMalfunction",
@@ -115,7 +114,7 @@ enum SensorStatusEnum: UInt8 {
         .sessionStopped,
         .deviceBatteryLow,
         .sensorTypeIncorrectForDevice,
-        .sensorMalfunction,
+        .sensorWarmingup,
         .deviceSpecificAlert,
         .generalDeviceFaultOccuredInSensor,
         .timeSynchronizationRequired,

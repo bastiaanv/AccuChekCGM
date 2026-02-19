@@ -19,7 +19,9 @@ class SetStartTimePacket: AccuChekBasePacket {
     }
 
     func getRequest() -> Data {
-        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+        var calendar = Calendar.current
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? TimeZone.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
         guard
             let year = components.year,
             let month = components.month,

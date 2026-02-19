@@ -34,6 +34,7 @@ class CalibratePacket: AccuChekBasePacket {
     }
 
     func parseResponse(data: Data) {
+        // 1c0401ec6f
         responseCode = data[2]
     }
 

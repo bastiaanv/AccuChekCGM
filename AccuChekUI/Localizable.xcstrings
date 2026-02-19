@@ -3471,6 +3471,18 @@
         }
       }
     },
+    "Next calibration at" : {
+      "comment" : "cgm calibrate",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next calibration at"
+          }
+        }
+      }
+    },
     "No" : {
       "comment" : "label no",
       "extractionState" : "manual",

@@ -15,6 +15,7 @@ class SettingsViewModel: ObservableObject {
     @Published var deviceName: String = ""
     @Published var lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 0)
     @Published var lastMeasurementDatetime: String = ""
+    @Published var nextCalibration: String? = nil
     @Published var sensorStartedAt: String = ""
     @Published var sensorEndsAt: String = ""
     @Published var sensorAgeProcess: Double = 0
@@ -98,6 +99,12 @@ extension SettingsViewModel: StateObserver {
             lastMeasurementDatetime = timeFormatter.string(from: date)
         }
 
+        if let nextCalibrationAt = state.nextCalibrationAt {
+            nextCalibration = dateFormatter.string(from: nextCalibrationAt)
+        } else {
+            nextCalibration = nil
+        }
+
         guard let cgmStartTime = state.cgmStartTime, let cgmEndTime = state.cgmEndTime else {
             return
         }
@@ -118,10 +125,8 @@ extension SettingsViewModel: StateObserver {
 
         } else {
             cgmState = .active
-
             sensorAgeProcess = min(cgmStartTime.timeIntervalSinceNow * -1 / .days(14), 1)
 
-            logger.info("Endtime: \(cgmEndTime)")
             let sensorAge = cgmEndTime.timeIntervalSinceNow
             sensorAgeDays = max(floor(sensorAge / .days(1)), 0)
             sensorAgeHours = max(sensorAge.truncatingRemainder(dividingBy: .days(1)) / .hours(1), 0)

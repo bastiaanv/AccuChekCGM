@@ -54,6 +54,8 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var lastGlucoseValue: UInt16?
     public var lastGlucoseTrend: GlucoseTrend?
 
+    public var nextCalibrationAt: Date?
+
     public var accessToken: String?
     public var expiresAt: Date?
     public var refreshToken: String?
@@ -73,6 +75,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         lastGlucoseOffset = rawValue["lastGlucoseOffset"] as? TimeInterval
         lastGlucoseDate = rawValue["lastGlucoseDate"] as? Date
         lastGlucoseValue = rawValue["lastGlucoseValue"] as? UInt16
+        nextCalibrationAt = rawValue["nextCalibrationAt"] as? Date
         accessToken = rawValue["accessToken"] as? String
         refreshToken = rawValue["refreshToken"] as? String
         expiresAt = rawValue["expiresAt"] as? Date
@@ -118,6 +121,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         raw["lastGlucoseDate"] = lastGlucoseDate
         raw["lastGlucoseValue"] = lastGlucoseValue
         raw["lastGlucoseTrend"] = lastGlucoseTrend?.rawValue
+        raw["nextCalibrationAt"] = nextCalibrationAt
         raw["accessToken"] = accessToken
         raw["refreshToken"] = refreshToken
         raw["expiresAt"] = expiresAt
@@ -142,7 +146,8 @@ struct AccuChekState: RawRepresentable, Equatable {
             "* lastGlucoseOffset: \(String(describing: lastGlucoseOffset?.minutes))",
             "* lastGlucoseDate: \(String(describing: lastGlucoseDate))",
             "* lastGlucoseValue: \(String(describing: lastGlucoseValue))",
-            "* lastGlucoseTrend: \(String(describing: lastGlucoseTrend))"
+            "* lastGlucoseTrend: \(String(describing: lastGlucoseTrend))",
+            "* nextCalibrationAt: \(String(describing: nextCalibrationAt))"
         ].joined(separator: "\n")
     }
 }

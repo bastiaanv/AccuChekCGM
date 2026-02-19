@@ -31,7 +31,7 @@ class AccuChekBluetoothManager: NSObject {
         }
 
         scanCompletion = completion
-        manager.scanForPeripherals(withServices: [CBUUID.CGM_SERVICE], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
+        manager.scanForPeripherals(withServices: [CBUUID.CGM_SERVICE])
         logger.info("Started scan!")
     }
 
@@ -95,6 +95,16 @@ class AccuChekBluetoothManager: NSObject {
     private func restoreConnection() {
         guard let deviceName = cgmManager?.state.deviceName else {
             logger.error("Cannot start ensureConnected - No device name available...")
+            return
+        }
+
+        let peripherals = manager?.retrieveConnectedPeripherals(withServices: [CBUUID.CGM_SERVICE]) ?? []
+        if let peripheral = peripherals.first {
+            connect(to: peripheral) { error in
+                if let error = error {
+                    self.logger.error("Failed to restore: \(error)")
+                }
+            }
             return
         }
 

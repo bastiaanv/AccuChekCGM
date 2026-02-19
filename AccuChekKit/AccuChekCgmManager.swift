@@ -88,6 +88,11 @@ public class AccuChekCgmManager: CGMManager {
             return
         }
 
+        if startTime.addingTimeInterval(.hours(1)) >= Date.now {
+            logger.info("Ignoring cgm data during warming up")
+            return
+        }
+
         if let lastMeasurement = measurements.last {
             state.lastGlucoseValue = lastMeasurement.glucoseInMgDl
             state.lastGlucoseDate = startTime.addingTimeInterval(lastMeasurement.timeOffset)
@@ -117,21 +122,30 @@ public class AccuChekCgmManager: CGMManager {
             return false
         }
 
-        let packet = CalibratePacket(glucoseInMgDl: glucose, cgmStartTime: startTime)
-        if !bluetooth.write(packet: packet, service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_CONTROL_POINT) {
-            logger.error("Failed to write calibration to sensor...")
+        let calibratePacket = CalibratePacket(glucoseInMgDl: glucose, cgmStartTime: startTime)
+
+        // Ignore response, since no response will be given by CGM
+        _ = bluetooth.write(packet: calibratePacket, service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_CONTROL_POINT)
+
+        let getCalibrationPacket = GetCalibrationPacket(recordIndex: 0xFFFF)
+        guard bluetooth
+            .write(packet: getCalibrationPacket, service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_CONTROL_POINT)
+        else {
+            logger.error("Failed to read last calibration")
             return false
         }
 
-        Thread.sleep(forTimeInterval: .seconds(2))
+        logger.info(getCalibrationPacket.describe)
 
-        guard let cgmStatus = bluetooth.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
-            logger.error("Failed to read sensor status")
-            return false
+        if getCalibrationPacket.calibrationStatus == 0x00 {
+            guard let cgmStatus = bluetooth.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
+                logger.error("Failed to read sensor status")
+                return false
+            }
+
+            let response = SensorStatus(data: cgmStatus)
+            notifyNewStatus(response)
         }
-
-        let response = SensorStatus(data: cgmStatus)
-        notifyNewStatus(response)
 
         return true
     }
@@ -140,8 +154,6 @@ public class AccuChekCgmManager: CGMManager {
         state.cgmStatus = status.status
         state.cgmStatusTimestamp = Date.now
         notifyStateDidChange()
-
-        if status.status.contains(where: { $0 == .timeSynchronizationRequired }) {}
 
         let notifications = status.status.compactMap(\.notification)
         if !notifications.isEmpty {

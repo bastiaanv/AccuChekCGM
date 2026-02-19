@@ -40,7 +40,16 @@ extension AccuChekCgmManager: CGMManagerUI {
     }
 
     public var cgmStatusHighlight: (any LoopKit.DeviceStatusHighlight)? {
-        nil
+        let cgmNotifications = state.cgmStatus.compactMap { $0.notification }
+        if let notification = cgmNotifications.first {
+            return AccuChekDeviceStatusHighlight(
+                localizedMessage: notification.content,
+                imageName: "exclamationmark.triangle",
+                state: notification.type == .calibrationRequired || notification.type == .calibrationRecommended ? .warning : .critical
+            )
+        }
+
+        return nil
     }
 
     public var cgmLifecycleProgress: (any LoopKit.DeviceLifecycleProgress)? {
@@ -90,4 +99,10 @@ struct AccuChekDeviceStatusBadge: DeviceStatusBadge {
 struct AccuChekKitLifecycleProgress: DeviceLifecycleProgress {
     var percentComplete: Double
     var progressState: LoopKit.DeviceLifecycleProgressState
+}
+
+struct AccuChekDeviceStatusHighlight: LoopKit.DeviceStatusHighlight {
+    var localizedMessage: String
+    var imageName: String
+    var state: LoopKit.DeviceStatusHighlightState
 }

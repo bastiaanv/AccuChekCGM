@@ -119,6 +119,12 @@ struct SettingsView: View {
                     title: LocalizedString("Ends at", comment: "cgm ends"),
                     value: viewModel.sensorEndsAt
                 )
+                if let nextCalibration = viewModel.nextCalibration {
+                    SectionItem(
+                        title: LocalizedString("Next calibration at", comment: "cgm calibration"),
+                        value: nextCalibration
+                    )
+                }
             } header: {
                 Text(LocalizedString("Sensor information", comment: "current sensor"))
             }
@@ -271,11 +277,12 @@ struct SettingsView: View {
             HStack(alignment: .lastTextBaseline) {
                 Text(LocalizedString("Sensor expired!", comment: "expired"))
                     .foregroundColor(guidanceColors.critical)
+                Spacer()
             }
             SwiftUI.ProgressView(value: 1)
                 .scaleEffect(x: 1, y: 4, anchor: .center)
                 .padding(.top, 7)
-                .foregroundStyle(guidanceColors.critical)
+                .tint(guidanceColors.critical)
         }
     }
 }
