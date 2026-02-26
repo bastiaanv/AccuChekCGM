@@ -11,7 +11,6 @@ protocol PairingAdapter {
 
 extension PairingAdapter {
     func configureSensor() {
-        setStartTime()
         getSensorStatus()
 
         let startTime = getSensorStartTime()

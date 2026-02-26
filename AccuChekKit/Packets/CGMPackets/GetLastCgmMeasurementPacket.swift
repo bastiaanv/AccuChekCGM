@@ -31,7 +31,12 @@ class GetLastCgmMeasurementPacket: AccuChekBasePacket {
             return
         }
 
-        measurements.append(CgmMeasurement(data))
+        let measurement = CgmMeasurement(data)
+        if measurement.glucoseInMgDl >= 0x01F4 {
+            // Ignore glucose above 500 mgdl
+            return
+        }
+        measurements.append(measurement)
     }
 
     func isComplete() -> Bool {

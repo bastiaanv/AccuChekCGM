@@ -11,7 +11,7 @@ class CgmMeasurement {
 
     init(_ data: Data) {
         flags = data[1]
-        glucoseInMgDl = UInt16(data.getDouble(offset: 2))
+        glucoseInMgDl = UInt16(bitPattern: Int16(data.getDouble(offset: 2)))
         timeOffset = TimeInterval.minutes(Double(data.getUInt16(offset: 4)))
 
         var statusValues = Data()
