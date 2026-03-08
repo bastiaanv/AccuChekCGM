@@ -115,7 +115,16 @@ extension PairingAdapter {
     }
 
     private func setStartTime() {
-        let packet = SetStartTimePacket(date: Date.now)
+        var startTime = Date.now
+        if let expiryDate = cgmManager.state.expiryDate, startTime > expiryDate {
+            // Fake the start date to bypass the expiry check in the CGM
+            startTime = expiryDate.addingTimeInterval(.days(30))
+        }
+
+        cgmManager.state.cgmStartTime = Date.now
+        cgmManager.state.fakeStartTime = startTime
+
+        let packet = SetStartTimePacket(date: startTime)
         guard peripheralManager.write(packet: packet, service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_SESSION_START)
         else {
             logger.error("Failed to write session start")

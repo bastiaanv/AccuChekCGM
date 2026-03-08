@@ -88,6 +88,7 @@ class PairingViewModel: ObservableObject {
             return
         }
 
+        let nextDeviceName = cgmManager.state.nextDeviceName
         let previousDeviceName = cgmManager.state.previousDeviceName
         cgmManager.bluetooth.startScan { result in
             if result.deviceName == previousDeviceName {
@@ -103,6 +104,13 @@ class PairingViewModel: ObservableObject {
                     self.unsupportedDevice = result
                     self.showUnsupportedDeviceAlert = true
                 }
+                return
+            }
+
+            if let nextDeviceName, result.deviceName == nextDeviceName {
+                self.logger.info("Auto connect to device!")
+                cgmManager.bluetooth.stopScan()
+                self.connect(result: result)
                 return
             }
 

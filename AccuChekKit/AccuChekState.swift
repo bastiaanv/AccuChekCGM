@@ -28,7 +28,9 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var mtu: UInt16 = 0
     public var deviceName: String?
     public var previousDeviceName: String?
+    public var nextDeviceName: String?
     public var serialNumber: String?
+    public var expiryDate: Date?
     public var certificate: Certificate?
 
     public var cgmStatus: [SensorStatusEnum]
@@ -40,6 +42,7 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var aesKey: Data?
     public var aesNonce: Data?
 
+    public var fakeStartTime: Date?
     public var cgmStartTime: Date?
     public var cgmEndTime: Date? {
         guard let cgmStartTime else {
