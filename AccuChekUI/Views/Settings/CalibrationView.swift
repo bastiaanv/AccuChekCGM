@@ -18,7 +18,7 @@ struct CalibrationView: View {
                 Section {
                     Button(action: { withAnimation { isEdittingGlucose.toggle() } }) {
                         HStack(alignment: .bottom) {
-                            Text(LocalizedString("Glucose level", comment: "label glucose"))
+                            Text("Glucose level", comment: "label glucose")
                                 .foregroundColor(isEdittingGlucose ? .blue : .primary)
                             Spacer()
                             Text(formatGlucose(viewModel.glucose))
@@ -41,21 +41,21 @@ struct CalibrationView: View {
 
             Spacer()
             if viewModel.isError {
-                Text(LocalizedString("Calibration failed. Consult logs to find why", comment: "calibration error"))
+                Text("Calibration failed. Consult logs to find why", comment: "calibration error")
                     .foregroundStyle(.red)
             }
             Button(action: viewModel.calibrate) {
                 if viewModel.isLoading {
                     ActivityIndicator(isAnimating: .constant(true), style: .medium)
                 } else {
-                    Text(LocalizedString("Calibrate Sensor", comment: "calibration"))
+                    Text("Calibrate Sensor", comment: "calibration")
                 }
             }
             .buttonStyle(ActionButtonStyle())
             .padding([.bottom, .horizontal])
             .disabled(viewModel.isLoading)
         }
-        .navigationTitle(LocalizedString("Calibration", comment: "Calibation header"))
+        .navigationTitle(String(localized: "Calibration", comment: "Calibation header"))
     }
 
     private func formatGlucose(_ value: UInt16) -> String {

@@ -61,50 +61,53 @@ enum SensorStatusEnum: UInt8 {
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "sessionStopped",
-                title: LocalizedString("Sensor expired!", comment: "Title sensor expired"),
-                content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
+                title: String(localized: "Sensor expired!", comment: "Title sensor expired"),
+                content: String(localized: "Replace your sensor now", comment: "description sensor expired"),
             )
         case .deviceBatteryLow:
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "deviceBatteryLow",
-                title: LocalizedString("Sensor battery is low", comment: "title battery low"),
-                content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
+                title: String(localized: "Sensor battery is low", comment: "title battery low"),
+                content: String(localized: "Replace your sensor now", comment: "description sensor expired"),
             )
         case .generalDeviceFaultOccuredInSensor:
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "sensorMalfunction",
-                title: LocalizedString("Sensor is malfunctioning", comment: "title sensor fault"),
-                content: LocalizedString("Replace your sensor now", comment: "description sensor expired"),
+                title: String(localized: "Sensor is malfunctioning", comment: "title sensor fault"),
+                content: String(localized: "Replace your sensor now", comment: "description sensor expired"),
             )
         case .calibrationRecommended:
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "calibrationRecommended",
-                title: LocalizedString("Sensor calibration", comment: "title sensor fault"),
-                content: LocalizedString("Calibration is recommended", comment: "description sensor calibration recommend"),
+                title: String(localized: "Sensor calibration", comment: "title sensor fault"),
+                content: String(localized: "Calibration is recommended", comment: "description sensor calibration recommend"),
             )
         case .calibrationRequired:
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "calibrationRequired",
-                title: LocalizedString("Sensor calibration", comment: "title sensor fault"),
-                content: LocalizedString("Calibrate your sensor now", comment: "description sensor calibration required"),
+                title: String(localized: "Sensor calibration", comment: "title sensor fault"),
+                content: String(localized: "Calibrate your sensor now", comment: "description sensor calibration required"),
             )
         case .sensorTemperatureTooHigh:
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "sensorTemperatureTooHigh",
-                title: LocalizedString("Sensor temperature too high", comment: "title sensor temp high"),
-                content: LocalizedString("Go to a cooler place to cooldown the sensor", comment: "description sensor temp high"),
+                title: String(localized: "Sensor temperature too high", comment: "title sensor temp high"),
+                content: String(
+                    localized: "Go to a cooler place to cooldown the sensor",
+                    comment: "description sensor temp high"
+                ),
             )
         case .sensorTemperatureTooLow:
             return NotificationContent(
                 type: self,
                 identifier: SensorStatusEnum.identifierPrefix + "sensorTemperatureTooLow",
-                title: LocalizedString("Sensor temperature too low", comment: "title sensor temp low"),
-                content: LocalizedString("Go to a warmer place to warmup the sensor", comment: "description sensor temp low"),
+                title: String(localized: "Sensor temperature too low", comment: "title sensor temp low"),
+                content: String(localized: "Go to a warmer place to warmup the sensor", comment: "description sensor temp low"),
             )
         default: return nil
         }

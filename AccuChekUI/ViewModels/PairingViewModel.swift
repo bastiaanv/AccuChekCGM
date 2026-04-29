@@ -10,18 +10,18 @@ enum PairingState {
     var text: String {
         switch self {
         case .scanning:
-            return LocalizedString("Scanning for Accu Chek CGMs", comment: "scanning")
+            return String(localized: "Scanning for Accu Chek CGMs", comment: "scanning")
         case .connecting:
-            return LocalizedString("Connecting with your Accu Chek CGM!", comment: "connecting")
+            return String(localized: "Connecting with your Accu Chek CGM!", comment: "connecting")
         }
     }
 
     var desciption: String {
         switch self {
         case .scanning:
-            return LocalizedString("Keep the app in the foreground while scanning...", comment: "scanning")
+            return String(localized: "Keep the app in the foreground while scanning...", comment: "scanning")
         case .connecting:
-            return LocalizedString("Please be patience, this can take a full minute", comment: "connecting")
+            return String(localized: "Please be patience, this can take a full minute", comment: "connecting")
         }
     }
 }
@@ -44,43 +44,6 @@ class PairingViewModel: ObservableObject {
 
         startScanning()
     }
-
-//    func fetchCertificate() {
-//        guard let cgmManager else {
-//            logger.error("No CGM manager to check certificate")
-//            return
-//        }
-//
-//        if cgmManager.state.certificate != nil {
-//            startScanning()
-//            return
-//        }
-//
-//        guard let accessToken = cgmManager.state.accessToken, let keyAgreement = cgmManager.state.keyAgreementPrivate else {
-//            logger.error("No access token or keyAgreement available...")
-//            return
-//        }
-//
-//        Task {
-//            do {
-//                let privateKey = try P256.KeyAgreement.PrivateKey(derRepresentation: keyAgreement)
-//                let request = CertificateHttp.CertificateRequest(
-//                    privateKey: privateKey,
-//                    sensorRevisionInfo: SensorInfo.default(),
-//                    authToken: accessToken
-//                )
-//                guard let certificate = await CertificateHttp.getCertificate(request: request) else {
-//                    self.logger.error("Failed to get certificate")
-//                    return
-//                }
-//
-//                cgmManager.state.certificate = certificate
-//                startScanning()
-//            } catch {
-//                self.logger.error("Error during private key construct: \(error.localizedDescription)")
-//            }
-//        }
-//    }
 
     func startScanning() {
         guard let cgmManager else {

@@ -13,38 +13,37 @@ struct PairingView: View {
             ActivityIndicator(isAnimating: .constant(true), style: .medium)
         }
         .alert(
-            LocalizedString("Found an Accu Chek CGM!", comment: "found device title"),
+            String(localized: "Found an Accu Chek CGM!", comment: "found device title"),
             isPresented: $viewModel.showConfirmationAlert,
             presenting: String(
-                format: LocalizedString("Is this the correct serial number? %@", comment: "found device message"),
+                format: String(localized: "Is this the correct serial number? %@", comment: "found device message"),
                 viewModel.foundDeviceLast?.deviceName ?? "EMPTY"
             ),
             actions: { _ in
-                Button(LocalizedString("No", comment: "label no"), action: {
-                    viewModel.startScanning()
-                })
-                Button(LocalizedString("Yes", comment: "label yes"), action: {
-                    if let device = viewModel.foundDeviceLast {
-                        viewModel.connect(result: device)
-                    }
-                })
+                Button(action: { viewModel.startScanning() }) {
+                    Text("No", comment: "label no")
+                }
+                Button(action: { if let device = viewModel.foundDeviceLast { viewModel.connect(result: device) } }) {
+                    Text("Yes", comment: "label yes")
+                }
             },
             message: { detail in Text(detail) }
         )
         .alert(
-            LocalizedString("Found unsupported Accu Chek CGM...", comment: "unsupported device title"),
+            String(localized: "Found unsupported Accu Chek CGM...", comment: "unsupported device title"),
             isPresented: $viewModel.showUnsupportedDeviceAlert,
             presenting: String(
-                format: LocalizedString(
+                format: String(
+                    localized:
                     "This Accu chek Sensor is using advanced encryption which is not supported yet... %@",
                     comment: "unsupported device message"
                 ),
                 viewModel.unsupportedDevice?.deviceName ?? "EMPTY"
             ),
             actions: { _ in
-                Button(LocalizedString("Understood", comment: "label undestood"), action: {
-                    viewModel.startScanning()
-                })
+                Button(action: { viewModel.startScanning() }) {
+                    Text("Understood", comment: "label undestood")
+                }
             },
             message: { detail in Text(detail) }
         )

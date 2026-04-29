@@ -10,14 +10,14 @@ struct SettingsView: View {
 
     var removeCgmManagerActionSheet: ActionSheet {
         ActionSheet(
-            title: Text(LocalizedString("Remove CGM", comment: "Label for CgmManager deletion button")),
-            message: Text(LocalizedString(
-                "Are you sure you want to stop using Eversense CGM?",
+            title: Text("Remove CGM", comment: "Label for CgmManager deletion button"),
+            message: Text(
+                "Are you sure you want to stop using Accu-Chek CGM?",
                 comment: "Message for CgmManager deletion action sheet"
-            )),
+            ),
             buttons: [
                 .destructive(
-                    Text(LocalizedString("Confirm", comment: "Confirmation label"))
+                    Text("Confirm", comment: "Confirmation label")
                 ) {
                     viewModel.deleteCGM()
                 },
@@ -28,14 +28,14 @@ struct SettingsView: View {
 
     var pairNewCGMActionSheet: ActionSheet {
         ActionSheet(
-            title: Text(LocalizedString("Pair new Sensor", comment: "title repair sensor action sheet")),
-            message: Text(LocalizedString(
+            title: Text("Pair new Sensor", comment: "title repair sensor action sheet"),
+            message: Text(
                 "Are you sure you want to pair a new Sensor? You cannot reverse this action.",
                 comment: "message repair sensor action sheet"
-            )),
+            ),
             buttons: [
                 .destructive(
-                    Text(LocalizedString("Confirm", comment: "Confirmation label"))
+                    Text("Confirm", comment: "Confirmation label")
                 ) {
                     viewModel.pairNewCGM()
                 },
@@ -84,7 +84,7 @@ struct SettingsView: View {
                             Spacer()
                             if notification.type == .calibrationRequired || notification.type == .calibrationRecommended {
                                 Button(action: viewModel.doCalibration) {
-                                    Text(LocalizedString("Start", comment: "calibration start button"))
+                                    Text("Start", comment: "calibration start button")
                                 }
                                 .disabled(!viewModel.connected)
                             }
@@ -95,50 +95,50 @@ struct SettingsView: View {
 
             Section {
                 SectionItem(
-                    title: LocalizedString("Glucose", comment: "current glucose"),
+                    title: Text("Glucose", comment: "current glucose"),
                     value: displayGlucosePreference.format(viewModel.lastMeasurement)
                 )
                 SectionItem(
-                    title: LocalizedString("Time", comment: "current glucose date"),
+                    title: Text("Time", comment: "current glucose date"),
                     value: viewModel.lastMeasurementDatetime
                 )
             } header: {
-                Text(LocalizedString("Last measurement", comment: "current reading"))
+                Text("Last measurement", comment: "current reading")
             }
 
             Section {
                 SectionItem(
-                    title: LocalizedString("Serial Number", comment: "CGM name"),
+                    title: Text("Serial Number", comment: "CGM name"),
                     value: viewModel.deviceName
                 )
                 SectionItem(
-                    title: LocalizedString("Started at", comment: "cgm started"),
+                    title: Text("Started at", comment: "cgm started"),
                     value: viewModel.sensorStartedAt
                 )
                 SectionItem(
-                    title: LocalizedString("Ends at", comment: "cgm ends"),
+                    title: Text("Ends at", comment: "cgm ends"),
                     value: viewModel.sensorEndsAt
                 )
                 if let nextCalibration = viewModel.nextCalibration {
                     SectionItem(
-                        title: LocalizedString("Next calibration at", comment: "cgm calibration"),
+                        title: Text("Next calibration at", comment: "cgm calibration"),
                         value: nextCalibration
                     )
                 }
             } header: {
-                Text(LocalizedString("Sensor information", comment: "current sensor"))
+                Text("Sensor information", comment: "current sensor")
             }
 
             Section {
-                Button(LocalizedString("Share Accu-chek logs", comment: "share logs")) {
-                    viewModel.isSharePresented = true
+                Button(action: { viewModel.isSharePresented = true }) {
+                    Text("Share Accu-chek logs", comment: "share logs")
                 }
                 .sheet(isPresented: $viewModel.isSharePresented, onDismiss: {}, content: {
                     ActivityViewController(activityItems: viewModel.getLogs())
                 })
 
-                Button(LocalizedString("Pair new Sensor", comment: "pair new sensor")) {
-                    viewModel.showingRepairConfirmation = true
+                Button(action: { viewModel.showingRepairConfirmation = true }) {
+                    Text("Pair new Sensor", comment: "pair new sensor")
                 }
                 .actionSheet(isPresented: $viewModel.showingRepairConfirmation) {
                     pairNewCGMActionSheet
@@ -147,7 +147,7 @@ struct SettingsView: View {
                 Button(action: {
                     viewModel.showingDeleteConfirmation = true
                 }) {
-                    Text(LocalizedString("Delete CGM", comment: "Label for CgmManager deletion button"))
+                    Text("Delete CGM", comment: "Label for CgmManager deletion button")
                         .foregroundColor(guidanceColors.critical)
                 }
                 .actionSheet(isPresented: $viewModel.showingDeleteConfirmation) {
@@ -156,27 +156,27 @@ struct SettingsView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .navigationBarItems(trailing: Button(LocalizedString("Done", comment: "done button title"), action: dismiss))
+        .navigationBarItems(trailing: Button(action: dismiss) {
+            Text("Done", comment: "done button title")
+        })
         .navigationTitle("Accu-Chek CGM")
     }
 
     @ViewBuilder private var cgmConnectionStatus: some View {
         VStack(alignment: .leading) {
-            Text(LocalizedString("Sensor State", comment: "CGM name"))
+            Text("Sensor State", comment: "CGM name")
                 .fontWeight(.heavy)
                 .fixedSize()
-            Text(
-                viewModel
-                    .connected ? LocalizedString("Operational", comment: "cgm connection Operational") :
-                    LocalizedString("Connecting", comment: "CGM name")
-            )
-            .foregroundColor(.secondary)
+
+            viewModel.connected ?
+                Text("Operational", comment: "cgm connection Operational").foregroundColor(.secondary) :
+                Text("Connecting", comment: "cgm connection Connecting").foregroundColor(.secondary)
         }
     }
 
     @ViewBuilder private var cgmSerialNumber: some View {
         VStack(alignment: .trailing) {
-            Text(LocalizedString("Sensor Serial", comment: "CGM name"))
+            Text("Serial Number", comment: "CGM name")
                 .fontWeight(.heavy)
                 .fixedSize()
             Text(viewModel.deviceName)
@@ -184,9 +184,10 @@ struct SettingsView: View {
         }
     }
 
-    @ViewBuilder private func SectionItem(title: String, value: String) -> some View {
+    @ViewBuilder private func SectionItem(title: Text, value: String) -> some View {
         HStack(alignment: .bottom) {
-            Text(title)
+            title
+                .foregroundColor(.primary)
             Spacer()
             Text(value)
                 .foregroundColor(.secondary)
@@ -202,12 +203,9 @@ struct SettingsView: View {
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
 
-                    Text(
-                        viewModel.sensorAgeDays == 1 ?
-                            LocalizedString("day", comment: "age in day") :
-                            LocalizedString("days", comment: "age in days")
-                    )
-                    .foregroundColor(.secondary)
+                    viewModel.sensorAgeDays == 1 ?
+                        Text("day", comment: "age in day").foregroundColor(.secondary) :
+                        Text("days", comment: "age in days").foregroundColor(.secondary)
                 }
             }
             if viewModel.sensorAgeHours > 0 {
@@ -217,12 +215,9 @@ struct SettingsView: View {
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
 
-                    Text(
-                        viewModel.sensorAgeHours == 1 ?
-                            LocalizedString("hour", comment: "age in hour") :
-                            LocalizedString("hours", comment: "age in hours")
-                    )
-                    .foregroundColor(.secondary)
+                    viewModel.sensorAgeHours == 1 ?
+                        Text("hour", comment: "age in hour").foregroundColor(.secondary) :
+                        Text("hours", comment: "age in hours").foregroundColor(.secondary)
                 }
             }
             if viewModel.sensorAgeDays == 0 {
@@ -232,8 +227,9 @@ struct SettingsView: View {
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
 
-                    Text(LocalizedString("min", comment: "age in minute"))
-                        .foregroundColor(.secondary)
+                    viewModel.sensorAgeMinutes == 1 ?
+                        Text("minute", comment: "age in hour").foregroundColor(.secondary) :
+                        Text("minutes", comment: "age in hours").foregroundColor(.secondary)
                 }
             }
         }
@@ -243,7 +239,7 @@ struct SettingsView: View {
         switch viewModel.cgmState {
         case .warmingup:
             HStack(alignment: .lastTextBaseline) {
-                Text(LocalizedString("Warming up:", comment: "sensor warming up label"))
+                Text("Warming up:", comment: "sensor warming up label")
                     .foregroundColor(.secondary)
                 Spacer()
                 Group {
@@ -252,12 +248,9 @@ struct SettingsView: View {
                         .fontWeight(.heavy)
                         .foregroundColor(.primary)
 
-                    Text(
-                        viewModel.sensorWarmupMinutes == 1 ?
-                            LocalizedString("minute remaining", comment: "remaining in minute") :
-                            LocalizedString("minutes remaining", comment: "remaining in minutes")
-                    )
-                    .foregroundColor(.secondary)
+                    viewModel.sensorWarmupMinutes == 1 ?
+                        Text("minute remaining", comment: "remaining in minute").foregroundColor(.secondary) :
+                        Text("minutes remaining", comment: "remaining in minutes").foregroundColor(.secondary)
                 }
             }
             SwiftUI.ProgressView(value: viewModel.sensorWarmupProgress)
@@ -265,7 +258,7 @@ struct SettingsView: View {
                 .padding(.top, 7)
         case .active:
             HStack(alignment: .lastTextBaseline) {
-                Text(LocalizedString("Sensor expires in:", comment: "expiration timer"))
+                Text("Sensor expires in:", comment: "expiration timer")
                     .foregroundColor(.secondary)
                 Spacer()
                 sensorExpirationTimer
@@ -275,7 +268,7 @@ struct SettingsView: View {
                 .padding(.top, 7)
         case .expired:
             HStack(alignment: .lastTextBaseline) {
-                Text(LocalizedString("Sensor expired!", comment: "expired"))
+                Text("Sensor expired!", comment: "expired")
                     .foregroundColor(guidanceColors.critical)
                 Spacer()
             }

@@ -5,8 +5,6 @@ import UIKit
 
 enum AccuChekScreen {
     case onboarding
-    case codeScanner
-    case auth
     case pairing
     case settings
     case calibration
@@ -76,31 +74,8 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
     private func viewControllerForScreen(_ screen: AccuChekScreen) -> UIViewController {
         switch screen {
         case .onboarding:
-            let view = OnboardingView(manualScan: { self.navigateTo(.pairing) }, qrScan: { self.navigateTo(.codeScanner) })
+            let view = OnboardingView(manualScan: { self.navigateTo(.pairing) })
             return hostingController(rootView: view)
-
-        case .codeScanner:
-            let nextStep: (_: Date, _: String) -> Void = { expiryDate, serialNumber in
-                if let cgmManager = self.cgmManager {
-                    cgmManager.state.nextDeviceName = serialNumber
-                    cgmManager.state.expiryDate = expiryDate
-                }
-                self.navigateTo(.pairing)
-            }
-            return hostingController(rootView: CodeScanView(doneScanning: nextStep))
-
-        case .auth:
-            let viewModel = WebViewModel(nextStep: { response in
-                if let cgmManager = self.cgmManager, let response = response {
-                    cgmManager.state.accessToken = response.access_token
-                    cgmManager.state.expiresAt = Date.now.addingTimeInterval(.seconds(Double(response.expires_in)))
-                    cgmManager.state.refreshToken = response.refresh_token
-                    cgmManager.notifyStateDidChange()
-                }
-
-                self.resetNavigationTo([.pairing])
-            })
-            return hostingController(rootView: AuthView(viewModel: viewModel))
 
         case .pairing:
             let nextStep = {
