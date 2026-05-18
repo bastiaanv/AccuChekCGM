@@ -10,8 +10,13 @@ class CgmMeasurement {
     let quality: Double?
 
     init(_ data: Data) {
+        var glucose = UInt16(bitPattern: Int16(data.getDouble(offset: 2)))
+        if glucose > 0xF802 {
+            glucose = 40
+        }
+
         flags = data[1]
-        glucoseInMgDl = UInt16(bitPattern: Int16(data.getDouble(offset: 2)))
+        glucoseInMgDl = glucose
         timeOffset = TimeInterval.minutes(Double(data.getUInt16(offset: 4)))
 
         var statusValues = Data()
