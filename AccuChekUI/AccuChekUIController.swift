@@ -197,7 +197,7 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
                 }
             }
         #else
-            navigateTo(.pairing)
+            navigateTo(.scanning)
         #endif
     }
 }
