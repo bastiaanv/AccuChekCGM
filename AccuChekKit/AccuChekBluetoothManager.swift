@@ -10,6 +10,7 @@ class AccuChekBluetoothManager: NSObject {
     public var cgmManager: AccuChekCgmManager?
 
     private var scanCompletion: ((ScanResult) -> Void)?
+    private var isScanDeferred = false
     private var connectCompletion: ((AccuChekError?) -> Void)?
 
     override init() {
@@ -33,10 +34,12 @@ class AccuChekBluetoothManager: NSObject {
         scanCompletion = completion
 
         guard manager.state == .poweredOn else {
+            isScanDeferred = true
             logger.warning("Bluetooth not powered on (state: \(manager.state.rawValue)), scan deferred until powered on")
             return
         }
 
+        isScanDeferred = false
         manager.scanForPeripherals(withServices: [CBUUID.CGM_SERVICE])
     }
 
@@ -45,6 +48,8 @@ class AccuChekBluetoothManager: NSObject {
             logger.error("No CBCentralManager available...")
             return
         }
+
+        isScanDeferred = false
 
         if manager.isScanning {
             manager.stopScan()
@@ -136,8 +141,10 @@ extension AccuChekBluetoothManager: CBCentralManagerDelegate {
             return
         }
 
-        // Resume a scan that was requested before Bluetooth was ready
-        if let completion = scanCompletion {
+        // Resume a scan that was requested before Bluetooth was ready. Gate on the
+        // deferred flag (not on scanCompletion, which stays set for the duration of
+        // an active scan) so we only restart once per deferred request.
+        if isScanDeferred, let completion = scanCompletion {
             logger.info("Resuming deferred scan")
             startScan(completion: completion)
             return
