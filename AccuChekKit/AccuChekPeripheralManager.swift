@@ -247,6 +247,11 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
             let measurement = CgmMeasurement(data)
             logger.info(measurement.describe)
 
+            if !measurement.isValid {
+                logger.warning("Ignoring invalid glucose reading (sensor malfunction)")
+                return
+            }
+
             cgmManager.notifyNewData(measurements: [measurement])
             return
         }

@@ -2,11 +2,11 @@ import HealthKit
 import LoopKit
 
 extension NewGlucoseSample {
-    init(cgmManager: AccuChekCgmManager, value: UInt16, trend: GlucoseTrend?, dateTime: Date) {
+    init(cgmManager: AccuChekCgmManager, value: UInt16, condition: GlucoseCondition?, trend: GlucoseTrend?, dateTime: Date) {
         self.init(
             date: dateTime,
             quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(value)),
-            condition: nil,
+            condition: condition,
             trend: trend,
             trendRate: nil,
             isDisplayOnly: false,

@@ -2,6 +2,7 @@ import CoreBluetooth
 import Foundation
 
 class GetLastCgmMeasurementPacket: AccuChekBasePacket {
+    private let logger = AccuChekLogger(category: "GetLastCgmMeasurementPacket")
     private var receivedFinalMessage = false
     var measurements: [CgmMeasurement] = []
 
@@ -32,10 +33,10 @@ class GetLastCgmMeasurementPacket: AccuChekBasePacket {
         }
 
         let measurement = CgmMeasurement(data)
-        if measurement.glucoseInMgDl >= 0x01F4 {
-            // Ignore glucose above 500 mgdl
+        if !measurement.isValid {
             return
         }
+
         measurements.append(measurement)
     }
 

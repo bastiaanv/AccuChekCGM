@@ -108,6 +108,7 @@ public class AccuChekCgmManager: CGMManager {
                     NewGlucoseSample(
                         cgmManager: self,
                         value: $0.glucoseInMgDl,
+                        condition: $0.condition,
                         trend: $0.getTrend(),
                         dateTime: startTime.addingTimeInterval($0.timeOffset)
                     )
