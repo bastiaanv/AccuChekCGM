@@ -141,6 +141,14 @@ struct SettingsView: View {
         .onAppear {
             viewModel.refreshCalibrationConfirmation()
         }
+        .onChange(of: viewModel.calibrationAvailable) { available in
+            // calibrationAvailable can flip true while settings stays open (a state
+            // update arrives after nextCalibrationAt passes); re-run the gate so the
+            // Start button appears without re-opening the screen.
+            if available {
+                viewModel.refreshCalibrationConfirmation()
+            }
+        }
     }
 
     @ViewBuilder private var sensorStatusRow: some View {
