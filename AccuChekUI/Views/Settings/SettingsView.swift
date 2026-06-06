@@ -105,14 +105,14 @@ struct SettingsView: View {
 
             Section {
                 Button(action: { viewModel.isSharePresented = true }) {
-                    Text("Share Accu-Chek Logs", comment: "share logs")
+                    Text("Share Accu-chek logs", comment: "share logs")
                 }
                 .sheet(isPresented: $viewModel.isSharePresented, onDismiss: {}, content: {
                     ActivityViewController(activityItems: viewModel.getLogs())
                 })
 
                 Button(action: { viewModel.showingRepairConfirmation = true }) {
-                    Text("Pair New Sensor", comment: "pair new sensor")
+                    Text("Pair new Sensor", comment: "pair new sensor")
                 }
                 .actionSheet(isPresented: $viewModel.showingRepairConfirmation) {
                     pairNewCGMActionSheet

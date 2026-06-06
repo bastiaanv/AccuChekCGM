@@ -6975,9 +6975,6 @@
         }
       }
     },
-    "Pair new sensor" : {
-
-    },
     "Pair new Sensor" : {
       "comment" : "pair new sensor",
       "extractionState" : "manual",
@@ -10869,9 +10866,6 @@
           }
         }
       }
-    },
-    "Share Accu-Chek logs" : {
-
     },
     "Slightly flip the pull tab open. If the pull tab has already been opened before use, discard the device and use a new one." : {
       "localizations" : {
