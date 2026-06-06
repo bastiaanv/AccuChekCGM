@@ -31,8 +31,13 @@ class AccuChekBluetoothManager: NSObject {
         }
 
         scanCompletion = completion
+
+        guard manager.state == .poweredOn else {
+            logger.warning("Bluetooth not powered on (state: \(manager.state.rawValue)), scan deferred until powered on")
+            return
+        }
+
         manager.scanForPeripherals(withServices: [CBUUID.CGM_SERVICE])
-        logger.info("Started scan!")
     }
 
     func stopScan() {
@@ -128,6 +133,13 @@ extension AccuChekBluetoothManager: CBCentralManagerDelegate {
         logger.info("State: \(central.state.rawValue)")
 
         guard central.state == .poweredOn else {
+            return
+        }
+
+        // Resume a scan that was requested before Bluetooth was ready
+        if let completion = scanCompletion {
+            logger.info("Resuming deferred scan")
+            startScan(completion: completion)
             return
         }
 
