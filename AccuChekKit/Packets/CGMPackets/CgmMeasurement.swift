@@ -13,10 +13,10 @@ class CgmMeasurement {
 
     // The sensor is spec'd to 40-400 mg/dL (2.2-22.2 mmol/L). Values at the edges
     // are clamped and reported as LO / HI rather than as a dosable number.
-    static let lowThresholdMgDl: UInt16 = 40
-    static let highThresholdMgDl: UInt16 = 400
+    private static let lowThresholdMgDl: UInt16 = 40
+    private static let highThresholdMgDl: UInt16 = 400
     
-    static let statusSensorMalfunction: UInt8 = 0x08
+    private static let statusSensorMalfunction: UInt8 = 0x08
 
     init(_ data: Data) {
         flags = data[1]
