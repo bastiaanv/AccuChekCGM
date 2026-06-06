@@ -151,6 +151,16 @@ public class AccuChekCgmManager: CGMManager {
         return true
     }
 
+    internal var readingsUnavailable: Bool {
+        get { state.readingsUnavailable }
+        set {
+            // Check if the value has actually changed to avoid unnecessary state changes
+            guard state.readingsUnavailable != newValue else { return }
+            state.readingsUnavailable = newValue
+            notifyStateDidChange()
+        }
+    }
+
     internal func notifyNewStatus(_ status: SensorStatus) {
         state.cgmStatus = status.status
         state.cgmStatusTimestamp = Date.now
@@ -160,6 +170,22 @@ public class AccuChekCgmManager: CGMManager {
         if !notifications.isEmpty {
             NotificationHelper.sendCgmAlert(alerts: notifications)
         }
+    }
+
+    // Performs a live CGM_STATUS read and reports whether the sensor is actually
+    // signalling that calibration is allowed. Used to gate the calibration prompt
+    // so we don't offer it on the time estimate alone (which could send a packet
+    // before the sensor is ready).
+    internal func refreshCalibrationStatus() -> Bool {
+        guard let cgmStatus = bluetooth.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
+            logger.error("Failed to read sensor status for calibration gate")
+            return false
+        }
+
+        let status = SensorStatus(data: cgmStatus)
+        notifyNewStatus(status)
+
+        return status.status.contains(.calibrationRecommended) || status.status.contains(.calibrationRequired)
     }
 
     internal func cleanup() {

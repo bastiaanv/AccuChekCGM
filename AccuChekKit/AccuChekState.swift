@@ -67,6 +67,10 @@ struct AccuChekState: RawRepresentable, Equatable {
     public var cgmStatus: [SensorStatusEnum]
     public var cgmStatusTimestamp: Date?
 
+    // Set when the most recent measurement reported a sensor malfunction (status
+    // bit 0x08). Cleared on the next valid reading. Defaults to OK.
+    public var readingsUnavailable: Bool = false
+
     // Authentication of CGM
     public var pinCode: String?
     public var keyAgreementPrivate: Data?
@@ -101,6 +105,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         deviceName = rawValue["deviceName"] as? String
         serialNumber = rawValue["serialNumber"] as? String
         cgmStatusTimestamp = rawValue["cgmStatusTimestamp"] as? Date
+        readingsUnavailable = rawValue["readingsUnavailable"] as? Bool ?? false
         pinCode = rawValue["pinCode"] as? String
         keyAgreementPrivate = rawValue["keyAgreementPrivate"] as? Data
         aesKey = rawValue["aesKey"] as? Data
@@ -157,6 +162,7 @@ struct AccuChekState: RawRepresentable, Equatable {
         raw["aesNonce"] = aesNonce
         raw["cgmStatus"] = cgmStatus.map(\.rawValue)
         raw["cgmStatusTimestamp"] = cgmStatusTimestamp
+        raw["readingsUnavailable"] = readingsUnavailable
         raw["cgmStartTime"] = cgmStartTime
         raw["lastGlucoseOffset"] = lastGlucoseOffset
         raw["lastGlucoseDate"] = lastGlucoseDate
@@ -186,6 +192,7 @@ struct AccuChekState: RawRepresentable, Equatable {
             "* cgmStartTime: \(String(describing: cgmStartTime))",
             "* cgmStatus: \(String(describing: cgmStatus))",
             "* cgmStatusTimestamp: \(String(describing: cgmStatusTimestamp))",
+            "* readingsUnavailable: \(readingsUnavailable)",
             "* lastGlucoseOffset: \(String(describing: lastGlucoseOffset?.minutes))",
             "* lastGlucoseDate: \(String(describing: lastGlucoseDate))",
             "* lastGlucoseValue: \(String(describing: lastGlucoseValue))",

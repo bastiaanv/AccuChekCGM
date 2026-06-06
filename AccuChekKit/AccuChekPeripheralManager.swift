@@ -249,9 +249,11 @@ extension AccuChekPeripheralManager: CBPeripheralDelegate {
 
             if !measurement.isValid {
                 logger.warning("Ignoring invalid glucose reading (sensor malfunction)")
+                cgmManager.readingsUnavailable = true
                 return
             }
 
+            cgmManager.readingsUnavailable = false
             cgmManager.notifyNewData(measurements: [measurement])
             return
         }
