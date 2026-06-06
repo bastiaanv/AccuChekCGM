@@ -207,9 +207,18 @@ class SettingsViewModel: ObservableObject {
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-            let confirmed = cgmManager.refreshCalibrationStatus()
+            // The BLE read blocks, so it runs here off-main. Applying the status
+            // (which notifies observers / mutates @Published state) is marshaled
+            // back to main.
+            let status = cgmManager.readSensorStatus()
             DispatchQueue.main.async {
-                self.calibrationConfirmed = confirmed
+                guard let status else {
+                    self.calibrationConfirmed = false
+                    return
+                }
+                self.cgmManager.notifyNewStatus(status)
+                self.calibrationConfirmed = status.status.contains(.calibrationRecommended)
+                    || status.status.contains(.calibrationRequired)
             }
         }
     }

@@ -172,20 +172,19 @@ public class AccuChekCgmManager: CGMManager {
         }
     }
 
-    // Performs a live CGM_STATUS read and reports whether the sensor is actually
-    // signalling that calibration is allowed. Used to gate the calibration prompt
-    // so we don't offer it on the time estimate alone (which could send a packet
-    // before the sensor is ready).
-    internal func refreshCalibrationStatus() -> Bool {
+    // Performs a live CGM_STATUS read. The BLE read blocks, so callers run this off
+    // the main thread; it deliberately does NOT mutate state or notify observers
+    // (that would touch @Published properties off-main). The caller applies the
+    // result via `notifyNewStatus` on the main queue. Used to gate the calibration
+    // prompt so we don't offer it on the time estimate alone (which could send a
+    // packet before the sensor is ready).
+    internal func readSensorStatus() -> SensorStatus? {
         guard let cgmStatus = bluetooth.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
             logger.error("Failed to read sensor status for calibration gate")
-            return false
+            return nil
         }
 
-        let status = SensorStatus(data: cgmStatus)
-        notifyNewStatus(status)
-
-        return status.status.contains(.calibrationRecommended) || status.status.contains(.calibrationRequired)
+        return SensorStatus(data: cgmStatus)
     }
 
     internal func cleanup() {
