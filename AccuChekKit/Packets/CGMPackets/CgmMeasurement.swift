@@ -16,10 +16,6 @@ class CgmMeasurement {
     static let lowThresholdMgDl: UInt16 = 40
     static let highThresholdMgDl: UInt16 = 400
     
-    // Sensor Status Annunciation Status octet, bit 3 (0x08) = "Sensor malfunction
-    // or faulting at time of measurement" (Bluetooth CGM Service spec). The
-    // sensor sets this on the bogus 2047 mg/dL readings it emits on a failed
-    // measurement, so the glucose field is garbage and the reading must be dropped.
     static let statusSensorMalfunction: UInt8 = 0x08
 
     init(_ data: Data) {
@@ -42,7 +38,7 @@ class CgmMeasurement {
             // UInt16's range, and an unchecked conversion would trap.
             let decoded = data.getDouble(offset: 2)
             let value = UInt16(min(max(decoded, 0), Double(UInt16.max)))
-            
+
             if value <= CgmMeasurement.lowThresholdMgDl {
                 condition = .belowRange
                 glucoseInMgDl = CgmMeasurement.lowThresholdMgDl
