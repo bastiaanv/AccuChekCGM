@@ -153,24 +153,26 @@ class SettingsViewModel: ObservableObject {
             return demoStatus
         }
 
-        let activeTypes = Set(notifications.map(\.type))
+        func hasNotification(_ type: SensorStatusEnum) -> Bool {
+            notifications.contains { $0.type == type }
+        }
 
         if !connected {
             return .connecting
         }
-        if cgmState == .expired || activeTypes.contains(.sessionStopped) {
+        if cgmState == .expired || hasNotification(.sessionStopped) {
             return .expired
         }
-        if activeTypes.contains(.generalDeviceFaultOccuredInSensor) {
+        if hasNotification(.generalDeviceFaultOccuredInSensor) {
             return .malfunction
         }
         if readingsUnavailable {
             return .readingsUnavailable
         }
-        if activeTypes.contains(.deviceBatteryLow) {
+        if hasNotification(.deviceBatteryLow) {
             return .batteryLow
         }
-        if activeTypes.contains(.sensorTemperatureTooHigh) || activeTypes.contains(.sensorTemperatureTooLow) {
+        if hasNotification(.sensorTemperatureTooHigh) || hasNotification(.sensorTemperatureTooLow) {
             return .temperature
         }
 
