@@ -6,7 +6,7 @@ import SwiftUI
 class SettingsViewModel: ObservableObject {
     @Published var cgmState = CGMState.warmingup
     @Published var connected: Bool = false
-    @Published var deviceName: String = ""
+    @Published var deviceSerialNumber: String = ""
     @Published var lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 0)
     @Published var lastMeasurementDatetime: String = ""
     @Published var nextCalibrationDate: String? = nil
@@ -29,7 +29,7 @@ class SettingsViewModel: ObservableObject {
 
     // Simulator-only
     @Published var demoStatus: SensorStatusDisplay? = nil
-    
+
     private let timeFormatter = {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
@@ -65,16 +65,6 @@ class SettingsViewModel: ObservableObject {
 
     deinit {
         cgmManager.removeStateObserver(state: self)
-    }
-
-    // The BLE name (e.g. "AC-1R...") doubles as the reconnection key, so it's kept
-    // verbatim in state. The serial printed on the packaging is the part after the
-    // "AC-" prefix, shown with GS1 application identifier (21).
-    var serialNumberDisplay: String {
-        guard deviceName.hasPrefix("AC-") else {
-            return deviceName
-        }
-        return "(21) " + deviceName.dropFirst(3)
     }
 
     var sensorStatus: SensorStatusDisplay {
@@ -153,9 +143,15 @@ extension SettingsViewModel: StateObserver {
     func stateDidUpdate(_ state: AccuChekState) {
         connected = state.isConnected
         readingsUnavailable = state.readingsUnavailable
-        deviceName = state.deviceName ?? ""
         notifications = state.cgmStatus.compactMap(\.notification)
         calibrationPhase = state.calibrationPhase
+
+        let deviceName = state.deviceName ?? ""
+        if deviceName.hasPrefix("AC-") {
+            deviceSerialNumber = "(21) " + deviceName.dropFirst(3)
+        } else {
+            deviceSerialNumber = deviceName
+        }
 
         if let glucose = state.lastGlucoseValue {
             lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose))

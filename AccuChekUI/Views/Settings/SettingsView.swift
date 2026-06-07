@@ -89,7 +89,7 @@ struct SettingsView: View {
             Section {
                 SectionItem(
                     title: Text("Serial Number", comment: "CGM name"),
-                    value: viewModel.serialNumberDisplay
+                    value: viewModel.deviceSerialNumber
                 )
                 SectionItem(
                     title: Text("Started at", comment: "cgm started"),
