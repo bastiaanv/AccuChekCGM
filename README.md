@@ -2,11 +2,14 @@
 
 Accu-Chek CGM driver for Loop.
 
-Currently Supported Models:
+**Currently Supported Models:**
 
-- Accu-Chek SmartGuide 
+- Accu-Chek SmartGuide*
 
-At the point of writing only European/Dutch SmartGuide sensors have been tested. Other variants with advanced security may not be compatible. In case you have another variant (e.g. US), please test it and report your findings by opening a GitHub issue to confirm (in)compatibility.
+*At the point of writing only European/Dutch SmartGuide sensors have been tested. In case you have another variant (e.g. US), please test it and report your findings by opening a GitHub issue to confirm (in)compatibility.
+
+> Note: There may exist Accu-Chek CGMs with advanced security. These are not yet compatible. \
+> At this moment its not known which sensors they are. If you have one/encountered one please open an issue. 
 
 ## Troubleshooting
 
