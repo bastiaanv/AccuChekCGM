@@ -107,27 +107,6 @@ class SettingsViewModel: ObservableObject {
         }
     }
 
-    func refreshCalibrationConfirmation() {
-        guard calibrationAvailable, connected else {
-            calibrationConfirmed = false
-            return
-        }
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self else { return }
-            let status = cgmManager.readSensorStatus()
-            DispatchQueue.main.async {
-                guard let status else {
-                    self.calibrationConfirmed = false
-                    return
-                }
-                self.cgmManager.notifyNewStatus(status)
-                self.calibrationConfirmed = status.status.contains(.calibrationRecommended)
-                    || status.status.contains(.calibrationRequired)
-            }
-        }
-    }
-
     func getLogs() -> [URL] {
         logger.info(cgmManager.state.debugDescription)
         return logger.getDebugLogs()
@@ -145,6 +124,8 @@ extension SettingsViewModel: StateObserver {
         readingsUnavailable = state.readingsUnavailable
         notifications = state.cgmStatus.compactMap(\.notification)
         calibrationPhase = state.calibrationPhase
+        calibrationConfirmed = state.cgmStatus.contains(.calibrationRecommended)
+            || state.cgmStatus.contains(.calibrationRequired)
 
         let deviceName = state.deviceName ?? ""
         if deviceName.hasPrefix("AC-") {

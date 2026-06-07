@@ -88,6 +88,19 @@ public class AccuChekCgmManager: CGMManager {
             return
         }
 
+        // If the sensor has not been calibrated twice
+        // we fetch the latest sensor status in order
+        // to ensure that calibration is truly available.
+        // (sensor is source of truth)
+        if state.calibrationPhase != .done {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self, let status = readSensorStatus() else { return }
+                DispatchQueue.main.async {
+                    self.notifyNewStatus(status)
+                }
+            }
+        }
+
         if startTime.addingTimeInterval(.hours(1)) >= Date.now {
             logger.info("Ignoring cgm data during warming up")
             return
