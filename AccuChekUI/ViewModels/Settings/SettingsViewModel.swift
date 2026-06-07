@@ -207,9 +207,6 @@ class SettingsViewModel: ObservableObject {
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
-            // The BLE read blocks, so it runs here off-main. Applying the status
-            // (which notifies observers / mutates @Published state) is marshaled
-            // back to main.
             let status = cgmManager.readSensorStatus()
             DispatchQueue.main.async {
                 guard let status else {
