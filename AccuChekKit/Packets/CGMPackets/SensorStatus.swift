@@ -36,7 +36,7 @@ enum SensorStatusEnum: UInt8 {
     case sessionStopped = 0
     case deviceBatteryLow = 1
     case sensorTypeIncorrectForDevice = 2
-    case sensorWarmingup = 3
+    case sensorMalfunction = 3
     case deviceSpecificAlert = 4
     case generalDeviceFaultOccuredInSensor = 5
     case timeSynchronizationRequired = 8
@@ -117,7 +117,7 @@ enum SensorStatusEnum: UInt8 {
         .sessionStopped,
         .deviceBatteryLow,
         .sensorTypeIncorrectForDevice,
-        .sensorWarmingup,
+        .sensorMalfunction,
         .deviceSpecificAlert,
         .generalDeviceFaultOccuredInSensor,
         .timeSynchronizationRequired,
