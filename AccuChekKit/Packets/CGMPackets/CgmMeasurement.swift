@@ -11,12 +11,13 @@ class CgmMeasurement {
     let isValid: Bool
     let condition: GlucoseCondition?
 
-    // The sensor is spec'd to 40-400 mg/dL (2.2-22.2 mmol/L). Values at the edges
-    // are clamped and reported as LO / HI rather than as a dosable number.
-    private static let lowThresholdMgDl: UInt16 = 40
-    private static let highThresholdMgDl: UInt16 = 400
 
-    private static let statusSensorMalfunction: UInt8 = 0x08
+    // The sensor's measurable range is between
+    // 40-400mg/dL (2.22-22.2mmol/L) as per the device spec
+    private enum MeasurableRangeMgDl {
+        static let low: UInt16 = 40
+        static let high: UInt16 = 400
+    }
 
     init(_ data: Data) {
         flags = data[1]
@@ -30,44 +31,44 @@ class CgmMeasurement {
             statusValues.append(data[6])
         }
 
-        // Drop the reading when the sensor reports a malfunction (status bit 0x08
-        // is set) or when the glucose word decodes to a non-finite value (NaN /
-        // ±infinity), which would trap the UInt16 conversion below.
-        let decoded = data.getDouble(offset: 2)
-        let notMalfunctioning = (statusByte & CgmMeasurement.statusSensorMalfunction) == 0
-        isValid = notMalfunctioning && decoded.isFinite
-
-        if isValid {
-            // Clamp before narrowing: a malformed glucose word can decode outside
-            // UInt16's range, and an unchecked conversion would trap.
-            let value = UInt16(min(max(decoded, 0), Double(UInt16.max)))
-
-            if value <= CgmMeasurement.lowThresholdMgDl {
-                condition = .belowRange
-                glucoseInMgDl = CgmMeasurement.lowThresholdMgDl
-            } else if value >= CgmMeasurement.highThresholdMgDl {
-                condition = .aboveRange
-                glucoseInMgDl = CgmMeasurement.highThresholdMgDl
-            } else {
-                condition = nil
-                glucoseInMgDl = value
-            }
-        } else {
-            condition = nil
-            glucoseInMgDl = 0
-        }
-
         let hasCalibration = (flags & CgmFlag.calibration.rawValue) != 0
+        let calibrationByte: UInt8 = hasCalibration ? data[CgmMeasurement.getCalibrationOffset(hasStatus)] : 0
         if hasCalibration {
-            statusValues.append(data[CgmMeasurement.getCalibrationOffset(hasStatus)])
+            statusValues.append(calibrationByte)
         }
 
         let hasWarning = (flags & CgmFlag.warning.rawValue) != 0
+        let warningByte: UInt8 = hasWarning ? data[CgmMeasurement.getWarningOffset(hasStatus, hasCalibration)] : 0
         if hasWarning {
-            statusValues.append(data[CgmMeasurement.getWarningOffset(hasStatus, hasCalibration)])
+            statusValues.append(warningByte)
         }
 
         self.statusValues = statusValues
+
+        let annunciation = Data([statusByte, calibrationByte, warningByte])
+        let status = SensorStatus.parseStatusAnnunciation(annunciation)
+
+        let decoded = data.getDouble(offset: 2)
+
+        if status.contains(.sensorResultHigherThanDeviceCanProcess) {
+            isValid = true
+            condition = .aboveRange
+            glucoseInMgDl = MeasurableRangeMgDl.high
+        } else if status.contains(.sensorResultLowerThanDeviceCanProcess) {
+            isValid = true
+            condition = .belowRange
+            glucoseInMgDl = MeasurableRangeMgDl.low
+        } else if !status.contains(.sensorMalfunction), decoded.isFinite {
+            isValid = true
+            condition = nil
+            // Clamp before narrowing: a malformed glucose word can decode outside
+            // UInt16's range, and an unchecked conversion would trap.
+            glucoseInMgDl = UInt16(min(max(decoded, 0), Double(UInt16.max)))
+        } else {
+            isValid = false
+            condition = nil
+            glucoseInMgDl = 0
+        }
 
         let hasTrend = (flags & CgmFlag.trend.rawValue) != 0
         if hasTrend {
