@@ -257,7 +257,7 @@ struct SettingsView: View {
 
     @ViewBuilder private var sensorStateInformation: some View {
         switch viewModel.cgmState {
-        case .warmingup:
+        case .warmingUp:
             HStack(alignment: .lastTextBaseline) {
                 Text("Warming up:", comment: "sensor warming up label")
                     .foregroundColor(.secondary)

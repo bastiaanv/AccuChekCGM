@@ -4,7 +4,7 @@ import LoopKit
 import SwiftUI
 
 class SettingsViewModel: ObservableObject {
-    @Published var cgmState = CGMState.warmingup
+    @Published var cgmState = CGMState.warmingUp
     @Published var connected: Bool = false
     @Published var deviceSerialNumber: String = ""
     @Published var lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 0)
@@ -89,7 +89,7 @@ class SettingsViewModel: ObservableObject {
         if hasNotification(.generalDeviceFaultOccuredInSensor) {
             return .malfunction
         }
-        if readingsUnavailable {
+        if readingsUnavailable && cgmState != .warmingUp {
             return .readingsUnavailable
         }
         if hasNotification(.deviceBatteryLow) {
@@ -107,7 +107,7 @@ class SettingsViewModel: ObservableObject {
         case .calibratedOnce:
             return .therapyMode(calibrationDue: calibrationDue)
         case .done:
-            return cgmState == .warmingup ? .trendMode(calibrationDue: false) : .ok
+            return cgmState == .warmingUp ? .trendMode(calibrationDue: false) : .ok
         }
     }
 
@@ -169,7 +169,7 @@ extension SettingsViewModel: StateObserver {
         } else if warmupEnd > Date.now {
             let warmupAge = warmupEnd.timeIntervalSinceNow
 
-            cgmState = .warmingup
+            cgmState = .warmingUp
             sensorWarmupProgress = min(cgmStartTime.timeIntervalSinceNow * -1 / .hours(1), 1)
             sensorWarmupMinutes = max(warmupAge / .minutes(1), 0)
 

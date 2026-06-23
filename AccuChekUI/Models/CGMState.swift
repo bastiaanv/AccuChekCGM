@@ -1,5 +1,5 @@
 enum CGMState {
-    case warmingup
+    case warmingUp
     case active
     case expired
 }
