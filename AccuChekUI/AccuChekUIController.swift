@@ -63,7 +63,7 @@ class AccuChekUIController: UINavigationController, CGMManagerOnboarding, Comple
     private func getInitialScreen() -> AccuChekScreen {
         cgmManager.isOnboarded ? .settings : .onboarding
     }
-    
+
     private func hostingController<Content: View>(
         rootView: Content,
         title: String? = nil,
