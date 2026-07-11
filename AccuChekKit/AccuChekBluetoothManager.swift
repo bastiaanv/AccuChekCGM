@@ -109,7 +109,7 @@ class AccuChekBluetoothManager: NSObject {
         }
 
         let peripherals = manager?.retrieveConnectedPeripherals(withServices: [CBUUID.CGM_SERVICE]) ?? []
-        if let peripheral = peripherals.first {
+        if let peripheral = peripherals.first, peripheral.name == deviceName {
             connect(to: peripheral) { error in
                 if let error = error {
                     self.logger.error("Failed to restore: \(error)")
