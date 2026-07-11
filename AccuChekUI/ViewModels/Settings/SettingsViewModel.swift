@@ -118,6 +118,8 @@ class SettingsViewModel: ObservableObject {
 
     func pairNewCGM() {
         cgmManager.cleanup()
+        cgmManager.notifyUpdatedCgm(type: .sensorEnd)
+
         doPairing()
     }
 }
@@ -130,6 +132,7 @@ extension SettingsViewModel: StateObserver {
         calibrationPhase = state.calibrationPhase
         calibrationConfirmed = state.cgmStatus.contains(.calibrationRecommended)
             || state.cgmStatus.contains(.calibrationRequired)
+        calibrationAvailable = !state.cgmStatus.contains(.calibrationNotAllowed)
 
         if let sensorInfo = state.sensorInfo {
             sensorModel = sensorInfo.model
@@ -149,10 +152,8 @@ extension SettingsViewModel: StateObserver {
 
         if let nextCalibrationAt = state.nextCalibrationAt {
             nextCalibrationDate = dateTimeFormatter.string(from: nextCalibrationAt)
-            calibrationAvailable = Date.now >= nextCalibrationAt
         } else {
             nextCalibrationDate = nil
-            calibrationAvailable = false
         }
 
         guard let cgmStartTime = state.cgmStartTime, let cgmEndTime = state.cgmEndTime else {

@@ -107,6 +107,8 @@ public class AccuChekCgmManager: CGMManager {
         if state.calibrationPhase != .done {
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 guard let self, let status = readSensorStatus() else { return }
+
+                logger.info(status.describe)
                 DispatchQueue.main.async {
                     self.notifyNewStatus(status)
                 }
@@ -163,7 +165,7 @@ public class AccuChekCgmManager: CGMManager {
 
         logger.info(getCalibrationPacket.describe)
 
-        if getCalibrationPacket.calibrationStatus == 0x00 {
+        if getCalibrationPacket.calibrationStatus == .ok {
             guard let cgmStatus = bluetooth.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
                 logger.error("Failed to read sensor status")
                 return false
@@ -191,7 +193,12 @@ public class AccuChekCgmManager: CGMManager {
         state.cgmStatusTimestamp = Date.now
         notifyStateDidChange()
 
-        let notifications = status.status.compactMap(\.notification)
+        var statusList = status.status
+        if statusList.contains(.calibrationNotAllowed) {
+            statusList = statusList.filter { $0 != .calibrationRecommended && $0 != .calibrationRequired }
+        }
+
+        let notifications = statusList.compactMap(\.notification)
         if !notifications.isEmpty {
             NotificationHelper.sendCgmAlert(alerts: notifications)
         }
@@ -222,6 +229,21 @@ public class AccuChekCgmManager: CGMManager {
 
         notifyDelegateOfDeletion(completion: completion)
     }
+    
+    private func sendAlert(alerts: [SensorStatusEnum]) {
+        let alertList = alerts.compactMap(\.notification)
+        
+        delegate.notify {
+            guard let cgmManagerDelegate = $0 else {
+                self.logger.warning("Skip notifying delegate as no delegate set...")
+                return
+            }
+            
+            alertList.forEach {
+                cgmManagerDelegate.issueAlert($0)
+            }
+        }
+    }
 }
 
 extension AccuChekCgmManager {
@@ -233,13 +255,31 @@ extension AccuChekCgmManager {
         stateObservers.removeElement(state)
     }
 
+    func notifyUpdatedCgm(type: CgmEventType) {
+        delegate.notify {
+            guard let cgmManagerDelegate = $0 else {
+                self.logger.warning("Skip notifying delegate as no delegate set...")
+                return
+            }
+
+            let event = PersistedCgmEvent(
+                date: self.state.cgmStartTime ?? Date.now,
+                type: type,
+                deviceIdentifier: self.state.deviceName ?? "",
+                expectedLifetime: type == .sensorStart ? .days(14) : nil,
+                warmupPeriod: type == .sensorStart ? .hours(1) : nil
+            )
+            cgmManagerDelegate.cgmManager(self, hasNew: [event])
+        }
+    }
+
     func notifyStateDidChange() {
         stateObservers.forEach { observer in
             observer.stateDidUpdate(self.state)
         }
 
-        delegate.notify { cgmManagerDelegate in
-            guard let cgmManagerDelegate = cgmManagerDelegate else {
+        delegate.notify {
+            guard let cgmManagerDelegate = $0 else {
                 self.logger.warning("Skip notifying delegate as no delegate set...")
                 return
             }

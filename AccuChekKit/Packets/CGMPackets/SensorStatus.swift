@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 
 class SensorStatus {
     let offset: UInt16
@@ -54,60 +55,108 @@ enum SensorStatusEnum: UInt8 {
     case sensorResultLowerThanDeviceCanProcess = 22
     case sensorResultHigherThanDeviceCanProcess = 23
 
+    private static let managerIdentifier = "AccuChekSmartGuide"
     private static let identifierPrefix = "com.bastiaanv.AccuChekKit."
-    var notification: NotificationContent? {
+    var notification: LoopKit.Alert? {
+        guard let identifier = alertIdentifier, let content = alertContent else {
+            return nil
+        }
+        
+        return Alert(
+            identifier: identifier,
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate
+        )
+    }
+    
+    private var alertContent: Alert.Content? {
         switch self {
         case .sessionStopped:
-            return NotificationContent(
-                type: self,
-                identifier: SensorStatusEnum.identifierPrefix + "sessionStopped",
+            return Alert.Content(
                 title: String(localized: "Sensor expired!", comment: "Title sensor expired"),
-                content: String(localized: "Replace your sensor now", comment: "description sensor expired"),
+                body: String(localized: "Replace your sensor now", comment: "description sensor expired"),
+                acknowledgeActionButtonLabel: String(localized: "OK", comment: "Acknoledge alert")
             )
         case .deviceBatteryLow:
-            return NotificationContent(
-                type: self,
-                identifier: SensorStatusEnum.identifierPrefix + "deviceBatteryLow",
+            return Alert.Content(
                 title: String(localized: "Sensor battery is low", comment: "title battery low"),
-                content: String(localized: "Replace your sensor now", comment: "description sensor expired"),
+                body: String(localized: "Replace your sensor now", comment: "description sensor expired"),
+                acknowledgeActionButtonLabel: String(localized: "OK", comment: "Acknoledge alert")
             )
         case .generalDeviceFaultOccuredInSensor:
-            return NotificationContent(
-                type: self,
-                identifier: SensorStatusEnum.identifierPrefix + "sensorMalfunction",
+            return Alert.Content(
                 title: String(localized: "Sensor is malfunctioning", comment: "title sensor fault"),
-                content: String(localized: "Replace your sensor now", comment: "description sensor expired"),
+                body: String(localized: "Replace your sensor now", comment: "description sensor expired"),
+                acknowledgeActionButtonLabel: String(localized: "OK", comment: "Acknoledge alert")
             )
         case .calibrationRecommended:
-            return NotificationContent(
-                type: self,
-                identifier: SensorStatusEnum.identifierPrefix + "calibrationRecommended",
+            return Alert.Content(
                 title: String(localized: "Sensor calibration", comment: "title sensor fault"),
-                content: String(localized: "Calibration is recommended", comment: "description sensor calibration recommend"),
+                body: String(localized: "Calibration is recommended", comment: "description sensor calibration recommend"),
+                acknowledgeActionButtonLabel: String(localized: "OK", comment: "Acknoledge alert")
             )
         case .calibrationRequired:
-            return NotificationContent(
-                type: self,
-                identifier: SensorStatusEnum.identifierPrefix + "calibrationRequired",
+            return Alert.Content(
                 title: String(localized: "Sensor calibration", comment: "title sensor fault"),
-                content: String(localized: "Calibrate your sensor now", comment: "description sensor calibration required"),
+                body: String(localized: "Calibrate your sensor now", comment: "description sensor calibration required"),
+                acknowledgeActionButtonLabel: String(localized: "OK", comment: "Acknoledge alert")
             )
         case .sensorTemperatureTooHigh:
-            return NotificationContent(
-                type: self,
-                identifier: SensorStatusEnum.identifierPrefix + "sensorTemperatureTooHigh",
+            return Alert.Content(
                 title: String(localized: "Sensor temperature too high", comment: "title sensor temp high"),
-                content: String(
+                body: String(
                     localized: "Go to a cooler place to cooldown the sensor",
                     comment: "description sensor temp high"
                 ),
+                acknowledgeActionButtonLabel: String(localized: "OK", comment: "Acknoledge alert")
             )
         case .sensorTemperatureTooLow:
-            return NotificationContent(
-                type: self,
-                identifier: SensorStatusEnum.identifierPrefix + "sensorTemperatureTooLow",
+            return Alert.Content(
                 title: String(localized: "Sensor temperature too low", comment: "title sensor temp low"),
-                content: String(localized: "Go to a warmer place to warmup the sensor", comment: "description sensor temp low"),
+                body: String(localized: "Go to a warmer place to warmup the sensor", comment: "description sensor temp low"),
+                acknowledgeActionButtonLabel: String(localized: "OK", comment: "Acknoledge alert")
+            )
+        default: return nil
+        }
+    }
+    
+    private var alertIdentifier: Alert.Identifier? {
+        switch self {
+        case .sessionStopped:
+            return Alert.Identifier(
+                managerIdentifier: Self.managerIdentifier,
+                alertIdentifier: Self.identifierPrefix + "sessionStopped"
+            )
+        case .deviceBatteryLow:
+            return Alert.Identifier(
+                managerIdentifier: Self.managerIdentifier,
+                alertIdentifier: Self.identifierPrefix + "deviceBatteryLow"
+            )
+        case .generalDeviceFaultOccuredInSensor:
+            return Alert.Identifier(
+                managerIdentifier: Self.managerIdentifier,
+                alertIdentifier: Self.identifierPrefix + "sensorMalfunction"
+            )
+        case .calibrationRecommended:
+            return Alert.Identifier(
+                managerIdentifier: Self.managerIdentifier,
+                alertIdentifier: Self.identifierPrefix + "calibrationRecommended"
+            )
+        case .calibrationRequired:
+            return Alert.Identifier(
+                managerIdentifier: Self.managerIdentifier,
+                alertIdentifier: Self.identifierPrefix + "calibrationRequired"
+            )
+        case .sensorTemperatureTooHigh:
+            return Alert.Identifier(
+                managerIdentifier: Self.managerIdentifier,
+                alertIdentifier: Self.identifierPrefix + "temperatureTooHigh"
+            )
+        case .sensorTemperatureTooLow:
+            return Alert.Identifier(
+                managerIdentifier: Self.managerIdentifier,
+                alertIdentifier: Self.identifierPrefix + "temperatureTooLow"
             )
         default: return nil
         }

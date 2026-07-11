@@ -8,7 +8,7 @@ class GetCalibrationPacket: AccuChekBasePacket {
 
     var receivedResponse: Bool = false
     var nextCalibrationOffset: UInt16 = 0
-    var calibrationStatus: UInt8 = 0
+    var calibrationStatus: CalibrationStatus = .unknown
     var recordNumber: UInt16 = 0
 
     let characteristics: [CBUUID] = [
@@ -36,10 +36,20 @@ class GetCalibrationPacket: AccuChekBasePacket {
         receivedResponse = true
         nextCalibrationOffset = data.getUInt16(offset: 6)
         recordNumber = data.getUInt16(offset: 8)
-        calibrationStatus = data[10]
+        calibrationStatus = CalibrationStatus(rawValue: data[10]) ?? .unknown
     }
 
     func isComplete() -> Bool {
         receivedResponse
     }
+}
+
+enum CalibrationStatus: UInt8 {
+    case ok = 0x00
+    case rejected = 0x01
+    case outOfRange = 0x02
+    case rejectedAndOutOfRange = 0x03
+    case processing = 0x04
+
+    case unknown = 0xFF
 }

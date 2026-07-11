@@ -30,6 +30,8 @@ class PairingViewModel: ObservableObject {
             self.cgmManager.state.deviceName = result.deviceName
             self.cgmManager.notifyStateDidChange()
 
+            self.cgmManager.notifyUpdatedCgm(type: .sensorStart)
+
             self.nextStep()
         }
     }
