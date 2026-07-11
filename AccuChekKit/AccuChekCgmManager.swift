@@ -96,7 +96,13 @@ public class AccuChekCgmManager: CGMManager {
     }
 
     internal func notifyNewData(measurements: [CgmMeasurement]) {
-        guard !measurements.isEmpty, let startTime = state.cgmStartTime else {
+        guard let lastMeasurement = state.lastGlucoseDate, let startTime = state.cgmStartTime else {
+            return
+        }
+        
+        // Prevent duplicated measurements
+        let measurements = measurements.filter{ startTime.addingTimeInterval($0.timeOffset) > lastMeasurement}
+        guard !measurements.isEmpty else {
             return
         }
 
