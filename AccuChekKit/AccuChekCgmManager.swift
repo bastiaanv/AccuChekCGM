@@ -99,9 +99,9 @@ public class AccuChekCgmManager: CGMManager {
         guard let lastMeasurement = state.lastGlucoseDate, let startTime = state.cgmStartTime else {
             return
         }
-        
+
         // Prevent duplicated measurements
-        let measurements = measurements.filter{ startTime.addingTimeInterval($0.timeOffset) > lastMeasurement}
+        let measurements = measurements.filter { startTime.addingTimeInterval($0.timeOffset) > lastMeasurement }
         guard !measurements.isEmpty else {
             return
         }
@@ -172,12 +172,22 @@ public class AccuChekCgmManager: CGMManager {
         logger.info(getCalibrationPacket.describe)
 
         if getCalibrationPacket.calibrationStatus == .ok {
+            if getCalibrationPacket.nextCalibrationOffset == 0xFFFF {
+                state.nextCalibrationAt = nil
+                state.calibrationPhase = .done
+            } else {
+                let offset = TimeInterval(minutes: Double(getCalibrationPacket.nextCalibrationOffset))
+                state.nextCalibrationAt = startTime.addingTimeInterval(offset)
+                state.calibrationPhase = .calibratedOnce
+            }
+
             guard let cgmStatus = bluetooth.read(service: CBUUID.CGM_SERVICE, characteristic: CBUUID.CGM_STATUS) else {
                 logger.error("Failed to read sensor status")
                 return false
             }
 
             let response = SensorStatus(data: cgmStatus)
+            logger.info(response.describe)
             notifyNewStatus(response)
         }
 

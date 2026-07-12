@@ -35,4 +35,4 @@ A: You've missed the second calibration moment. The SmartGuide sensor requires t
 
 ## More Information
 
-For more information please join the Loop Zulipchat at https://loop.zulipchat.com/
+For more information please join the Trio Discord: https://discord.triodocs.org/
