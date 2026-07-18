@@ -1,4 +1,4 @@
-import HealthKit
+import LoopAlgorithm
 import LoopKitUI
 import SwiftUI
 
@@ -28,12 +28,11 @@ struct CalibrationView: View {
                     .buttonStyle(.plain)
 
                     if isEdittingGlucose {
-                        ResizeablePicker(
-                            selection: $viewModel.glucose,
-                            data: isMgDl ? viewModel.allowedGlucoseValuesMgDl : viewModel.allowedGlucoseValuesMmolL,
-                            formatter: { formatGlucose($0) }
-                        )
-                        .padding(.horizontal)
+                        Picker(selection: $viewModel.glucose) {
+                            ForEach(isMgDl ? viewModel.allowedGlucoseValuesMgDl : viewModel.allowedGlucoseValuesMmolL, id: \.self) { item in
+                                Text(formatGlucose(item))
+                            }
+                        } label: { EmptyView() }
                     }
                 }
             }
@@ -58,7 +57,7 @@ struct CalibrationView: View {
     }
 
     private func formatGlucose(_ value: UInt16) -> String {
-        let quantity = HKQuantity(
+        let quantity = LoopQuantity(
             unit: isMgDl ? .milligramsPerDeciliter : .millimolesPerLiter,
             doubleValue: isMgDl ? Double(value) : Double(value) / 10
         )

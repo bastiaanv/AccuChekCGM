@@ -7,7 +7,7 @@ protocol StateObserver: AnyObject {
 }
 
 public class AccuChekCgmManager: CGMManager {
-    public static var pluginIdentifier: String = "AccuChek"
+    public let pluginIdentifier: String = "AccuChek"
     public var localizedTitle: String = "Accu-Chek SmartGuide CGM"
 
     public let providesBLEHeartbeat: Bool = true
@@ -30,6 +30,20 @@ public class AccuChekCgmManager: CGMManager {
 
     public var debugDescription: String {
         state.debugDescription
+    }
+    
+    public var inSignalLoss: Bool {
+        guard let lastGlucoseDate = state.lastGlucoseDate else {
+            return false
+        }
+        
+        return Date.now.timeIntervalSince(lastGlucoseDate) > .minutes(15)
+    }
+    
+    public var isInoperable: Bool {
+        // EversenseKit reports connection/sensor state via state.connectionStatus;
+        // we treat anything other than .connected as not-inoperable but stale.
+        false
     }
 
     public required init(rawState: RawStateValue) {
@@ -244,16 +258,13 @@ public class AccuChekCgmManager: CGMManager {
     }
 
     private func sendAlert(alerts: [SensorStatusEnum]) {
-        let alertList = alerts.compactMap(\.notification)
+        guard let delegate = delegate.delegate else {
+            return
+        }
 
-        delegate.notify {
-            guard let cgmManagerDelegate = $0 else {
-                self.logger.warning("Skip notifying delegate as no delegate set...")
-                return
-            }
-
-            alertList.forEach {
-                cgmManagerDelegate.issueAlert($0)
+        Task {
+            for alert in alerts.compactMap(\.notification) {
+                await delegate.issueAlert(alert)
             }
         }
     }
@@ -303,9 +314,7 @@ extension AccuChekCgmManager {
 }
 
 public extension AccuChekCgmManager {
-    func acknowledgeAlert(alertIdentifier _: LoopKit.Alert.AlertIdentifier, completion: @escaping ((any Error)?) -> Void) {
-        completion(nil)
-    }
+    func acknowledgeAlert(alertIdentifier _: LoopKit.Alert.AlertIdentifier) async throws {}
 
     func getSoundBaseURL() -> URL? {
         nil

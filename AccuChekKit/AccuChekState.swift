@@ -1,10 +1,10 @@
-import HealthKit
 import LoopKit
+import LoopAlgorithm
 
 public struct GlucoseDisplay: GlucoseDisplayable {
     public let isStateValid: Bool
     public let trendType: LoopKit.GlucoseTrend?
-    public let trendRate: HKQuantity? = nil
+    public let trendRate: LoopQuantity? = nil
     public let isLocal: Bool = true
     public let glucoseRangeCategory: LoopKit.GlucoseRangeCategory? = nil
 

@@ -1,5 +1,5 @@
 import Combine
-import HealthKit
+import LoopAlgorithm
 import LoopKit
 import SwiftUI
 
@@ -7,7 +7,7 @@ class SettingsViewModel: ObservableObject {
     @Published var cgmState = CGMState.warmingUp
     @Published var connected: Bool = false
     @Published var deviceSerialNumber: String = ""
-    @Published var lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: 0)
+    @Published var lastMeasurement = LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 0)
     @Published var lastMeasurementDatetime: String = ""
     @Published var nextCalibrationDate: String? = nil
     @Published var sensorStartedAt: String = ""
@@ -146,7 +146,7 @@ extension SettingsViewModel: StateObserver {
         }
 
         if let glucose = state.lastGlucoseValue {
-            lastMeasurement = HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose))
+            lastMeasurement = LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose))
         }
 
         if let date = state.lastGlucoseDate {

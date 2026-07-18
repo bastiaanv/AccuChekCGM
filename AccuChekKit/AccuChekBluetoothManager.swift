@@ -24,6 +24,10 @@ class AccuChekBluetoothManager: NSObject {
             )
         }
     }
+    
+    var isConnected: Bool {
+        peripheral?.state == .connected
+    }
 
     func startScan(completion: @escaping (ScanResult) -> Void) {
         guard let manager else {

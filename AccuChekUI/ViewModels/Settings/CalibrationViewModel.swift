@@ -1,5 +1,5 @@
 import Combine
-import HealthKit
+import LoopAlgorithm
 import SwiftUI
 
 class CalibrationViewModel: ObservableObject {
@@ -13,8 +13,8 @@ class CalibrationViewModel: ObservableObject {
     private let logger = AccuChekLogger(category: "CalibrationViewModel")
     private let cgmManager: AccuChekCgmManager?
     private let done: () -> Void
-    private let unit: HKUnit
-    init(cgmManager: AccuChekCgmManager?, _ unit: HKUnit, _ done: @escaping () -> Void) {
+    private let unit: LoopUnit
+    init(cgmManager: AccuChekCgmManager?, _ unit: LoopUnit, _ done: @escaping () -> Void) {
         self.cgmManager = cgmManager
         self.unit = unit
         self.done = done
@@ -35,7 +35,7 @@ class CalibrationViewModel: ObservableObject {
 
             var glucose = glucose
             if unit == .millimolesPerLiter {
-                let mgdl = HKQuantity(unit: unit, doubleValue: Double(glucose) / 10).doubleValue(for: .milligramsPerDeciliter)
+                let mgdl = LoopQuantity(unit: unit, doubleValue: Double(glucose) / 10).doubleValue(for: .milligramsPerDeciliter)
                 glucose = UInt16(mgdl)
             }
 

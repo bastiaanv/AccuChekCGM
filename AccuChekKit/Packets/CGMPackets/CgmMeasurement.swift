@@ -1,5 +1,6 @@
 import Foundation
 import LoopKit
+import LoopAlgorithm
 
 class CgmMeasurement {
     let flags: UInt8
