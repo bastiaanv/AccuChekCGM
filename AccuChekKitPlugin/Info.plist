@@ -19,7 +19,7 @@
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
     <key>com.loopkit.Loop.CGMManagerDisplayName</key>
-    <string>Accu Chek SmartGuide</string>
+    <string>AccuChek SmartGuide</string>
     <key>com.loopkit.Loop.CGMManagerIdentifier</key>
     <string>AccuChek</string>
     <key>NSPrincipalClass</key>
